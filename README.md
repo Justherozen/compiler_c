@@ -5,8 +5,11 @@ course project of compiler principle
 
 ### Assignment
 
-Xiao：词法分析、语法分析，语义分析，符号表
-Yu：生成中间代码，中间代码优化，生成mips汇编代码， 语法树可视化
+Xiao：词法分析、语法分析，语义分析，符号表，expected ddl:5 24
+
+
+
+Yu：生成中间代码与优化，生成汇编代码， 语法树可视化  expected ddl:5 29
 
 
 

@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdarg.h>
+#include"treenode.h"
 extern int yylineno;
 int emptyflag=0;
 int emptystart=0;
@@ -16,7 +17,7 @@ extern struct Node* root;
 }
 
 %locations
-
+//终结符类型绑定
 %token  <node>INT
 %token  <node>FLOAT
 %token  <node>ID
@@ -45,9 +46,8 @@ extern struct Node* root;
 %token  <node>ELSE
 %token  <node>WHILE
 
-
+//非终结符类型绑定
 %type <node>Program
-
 %type <node>ExtDecList
 %type <node>ExtDef
 %type <node>ExtDefList
@@ -69,6 +69,7 @@ extern struct Node* root;
 %type <node>Exp
 %type <node>Args
 
+//结合性定义
 %start Program
 %right ASSIGNOP
 %left OR
@@ -89,6 +90,8 @@ Program: ExtDefList {
     $$=add_parsing_node("Program",@$.first_line);
     fill_child_node($$,1,$1);
     root=$$;
+    if(emptyflag==0){
+    root->column=emptystart;}
     } ;
 //使用右递归
 ExtDefList: ExtDef ExtDefList {
@@ -235,7 +238,7 @@ Stmt:Exp SEMI{//末尾是分号的表达式
         $$=add_parsing_node("Stmt",@$.first_line);
         fill_child_node($$,3,$1,$2,$3);
 };
-|IF LP Exp RP Stmt %prec LOWER_THAN_ELSE{//IF语句
+|IF LP Exp RP Stmt %prec LOWER_THAN_ELSE{//IF语句，优先级没有if else语句高
         $$=add_parsing_node("Stmt",@$.first_line);
         fill_child_node($$,5,$1,$2,$3,$4,$5);
 };
@@ -450,15 +453,12 @@ int yyerror(char*msg){
 struct Node *add_parsing_node(char* Name,int column){
  struct Node * Root=(struct Node *)malloc(sizeof(struct Node));
  Root->child=NULL;
- Root->next_sib=NULL;
+ Root->next_sib=NULL; 
  strcpy(Root->name,Name);
  Root->from=1;
  Root->type=OTHERS;
  Root->column=column;
 
-if(strcmp(Name,"Program")==0&&emptyflag==0){
-  Root->column=emptystart;
-}
 #ifdef DEBUGBISONNOW
 printf("name: %s\tline:%d\n",Name,column);
 #endif
@@ -466,16 +466,16 @@ return Root;
 }
 
 void  fill_child_node(struct Node *parent,int num_args,...){//填充生成树的儿子
-    va_list able;
-    va_start(able,num_args);
-    struct Node * temp=NULL;
-    temp=va_arg(able,struct Node*);
-    parent->child=temp;
-    for(int i=1;i<num_args;i++){
-        temp->next_sib=va_arg(able,struct Node*);
-        if(temp->next_sib!=NULL){
-            temp=temp->next_sib;
-        }
-    }
+va_list able;
+va_start(able,num_args);
+struct Node * indexnode=NULL;
+parent->child=va_arg(able,struct Node*);;
+indexnode=parent->child;
+for(int i=1;i<num_args;i++){
+   indexnode->next_sib=va_arg(able,struct Node*);
+   if(indexnode->next_sib!=NULL){
+     indexnode=indexnode->next_sib;
+   }
+}
 }
 

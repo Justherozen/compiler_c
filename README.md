@@ -5,7 +5,7 @@ course project of compiler principle
 
 ### Assignment
 
-Xiao：词法分析、语法分析，语义分析，符号表，expected ddl:5 24
+Xiao：词法分析(√)、语法分析（√），语义分析，符号表，expected ddl:5 24
 
 
 
@@ -51,3 +51,126 @@ You should divide your work into specific, recognizable blocks of coding to make
    4. `refactor: <what you've refactored>` is for refactoring the code to make it look like a poem that doesn't affect the final outcome of your code
    5. `merge: <from which to which>` is for administrators to merge branches
 3. Generally, your commit message should sum up what you've done in this commit. And if you have anything interesting to let others know, write it in the `body` section of your commit message. We recommend a **SHORT and SELF-EXPLANATORY commit message header and DETAILTED commit message body.**
+
+
+
+
+
+## Feature
+
+### 文法定义部分
+
+#### token
+
+```
+INT -> /* A sequence of digits without spaces1 */
+FLOAT -> /* A real number consisting of digits and one decimal point. The decimal
+point must be surrounded by at least one digit2 */
+ID -> /* A character string consisting of 52 upper- or lower-case alphabetic,
+10 numeric and one underscore characters. Besides, an identifier must not start
+with a digit3 */
+SEMI -> ;
+COMMA -> ,
+ASSIGNOP -> =
+RELOP -> > | < | >= | <= | == | !=
+PLUS -> +
+MINUS -> -
+STAR -> *
+DIV -> /
+AND -> &&
+OR -> ||
+DOT -> .
+NOT -> !
+TYPE -> int | float
+LP -> (
+RP -> )
+LB -> [
+RB -> ]
+LC -> {
+RC -> }
+STRUCT -> struct
+RETURN -> return
+IF -> if
+ELSE -> else
+WHILE -> while
+```
+
+#### 生成文法：
+
+```
+Program -> ExtDefList
+ExtDefList -> ExtDef ExtDefList
+| null
+ExtDef -> Specifier ExtDecList SEMI
+| Specifier SEMI
+| Specifier FunDec CompSt
+ExtDecList -> VarDec
+| VarDec COMMA ExtDecList
+
+Specifier -> TYPE
+| StructSpecifier
+StructSpecifier -> STRUCT OptTag LC DefList RC
+| STRUCT Tag
+OptTag -> ID
+| null
+Tag -> ID
+
+VarDec -> ID
+| VarDec LB INT RB
+FunDec -> ID LP VarList RP
+| ID LP RP
+VarList -> ParamDec COMMA VarList
+| ParamDec
+ParamDec -> Specifier VarDec
+
+CompSt -> LC DefList StmtList RC
+StmtList -> Stmt StmtList
+| null
+Stmt -> Exp SEMI
+| CompSt
+| RETURN Exp SEMI
+| IF LP Exp RP Stmt
+| IF LP Exp RP Stmt ELSE Stmt
+| WHILE LP Exp RP Stmt
+
+DefList -> Def DefList
+| null
+Def -> Specifier DecList SEMI
+DecList -> Dec
+| Dec COMMA DecList
+Dec -> VarDec
+| VarDec ASSIGNOP Exp
+
+Exp -> Exp ASSIGNOP Exp
+| Exp AND Exp
+| Exp OR Exp
+| Exp RELOP Exp
+| Exp PLUS Exp
+| Exp MINUS Exp
+| Exp STAR Exp
+| Exp DIV Exp
+| LP Exp RP
+| MINUS Exp
+| NOT Exp
+| ID LP Args RP
+| ID LP RP
+| Exp LB Exp RB
+| Exp DOT ID
+| ID
+| INT
+| FLOAT
+Args -> Exp COMMA Args
+| Exp
+```
+
+#### 符号表结构：
+
+基于十字链表与open hashing散列表
+
+![image-20210524134922608](README.assets/image-20210524134922608.png)
+
+#### 类型表示：
+
+结构体的类型结构表示如下
+
+![image-20210524134911970](README.assets/image-20210524134911970.png)

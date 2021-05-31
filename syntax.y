@@ -1,481 +1,173 @@
-%{
-#include <stdio.h>
-#include <stdarg.h>
-#include"treenode.h"
-extern int yylineno;
-int emptyflag=0;
-int emptystart=0;
-int syntaxError=0;
-//#define YYSTYPE struct Node*
-struct Node *add_parsing_node(char* Name,int column);
-void  fill_child_node(struct Node *parent,int num_args,...);
-void tree_search(struct Node* cur,int depth);
-extern struct Node* root;
-%}
-%union {
-  struct Node* node;
-}
-
 %locations
-//终结符类型绑定
-%token  <node>INT
-%token  <node>FLOAT
-%token  <node>ID
-%token  <node>SEMI
-%token  <node>COMMA
-%token  <node>ASSIGNOP
-%token  <node>RELOP
-%token  <node>PLUS
-%token  <node>MINUS
-%token  <node>STAR
-%token  <node>DIV
-%token  <node>AND
-%token  <node>OR
-%token  <node>DOT
-%token  <node>NOT
-%token  <node>TYPE
-%token  <node>LP
-%token  <node>RP
-%token  <node>LB
-%token  <node>RB
-%token  <node>LC
-%token  <node>RC
-%token  <node>STRUCT
-%token  <node>RETURN 
-%token  <node>IF
-%token  <node>ELSE
-%token  <node>WHILE
+%{
+#include "Ast.hpp"
+#include <string>
+#include <iostream>
 
-//非终结符类型绑定
-%type <node>Program
-%type <node>ExtDecList
-%type <node>ExtDef
-%type <node>ExtDefList
-%type <node>Specifier
-%type  <node>StructSpecifier
-%type <node>OptTag
-%type  <node>Tag
-%type <node> VarDec
-%type  <node>FunDec
-%type  <node>VarList
-%type <node>ParamDec
-%type <node> CompSt
-%type  <node>StmtList
-%type  <node>Stmt
-%type <node>DefList
-%type <node>Def
-%type <node>DecList
-%type <node>Dec
-%type <node>Exp
-%type <node>Args
+using namespace std;
 
-//结合性定义
-%start Program
-%right ASSIGNOP
-%left OR
-%left AND 
-%left  RELOP
-%left PLUS MINUS
-%left STAR DIV
-%right NOT 
-%left UMINUS 
-%left  DOT 
-%left LB RB 
-%left LP RP
-%nonassoc LOWER_THAN_ELSE
+void yyerror(const char *s) { 
+    std::printf("Error: %s\n", s);
+    std::exit(1); 
+}
+#define SET_LOCATION(dest) (dest)->set_location(yylloc.first_line, yylloc.first_column)
+extern int yylex(void);
+Program *root;
+%}
+
+%code requires{#include "Ast.hpp"}
+%nonassoc LOWERTHANELSE 
 %nonassoc ELSE
-%% 
-//初始的program,包含了多个ExtDef，每个ExtDef表示一个全局变量、结构体或函数的定义
-Program: ExtDefList {
-    $$=add_parsing_node("Program",@$.first_line);
-    fill_child_node($$,1,$1);
-    root=$$;
-    if(emptyflag==0){
-    root->column=emptystart;}
-    } ;
-//使用右递归
-ExtDefList: ExtDef ExtDefList {
-    $$=add_parsing_node("ExtDefList",@$.first_line);  
-    fill_child_node($$,2,$1,$2);
-    }
-    | {
-    $$=NULL;
-    emptystart=yylineno;
-    };
-    
-//表示全局变量，例如“int glob-al1, global2;”。
-ExtDef:Specifier ExtDecList SEMI{
-    $$=add_parsing_node("ExtDef",@$.first_line);
-    fill_child_node($$,3,$1,$2,$3); 
-    };
-    | Specifier SEMI{//结构体的定义
-    $$=add_parsing_node("ExtDef",@$.first_line);
-    fill_child_node($$,2,$1,$2); 
-    };
-    | Specifier FunDec CompSt{//函数体的定义,其中Specifier是返回类型，FunDec是函数头，CompSt表示函数体
-    $$=add_parsing_node("ExtDef",@$.first_line);
-    fill_child_node($$,3,$1,$2,$3); 
-    };
-    |Specifier FunDec SEMI{//函数体声明
-    $$=add_parsing_node("ExtDef",@$.first_line);
-    fill_child_node($$,3,$1,$2,$3); 
-    };
-    |error SEMI{//错误的所有类型
-    syntaxError+=1;
-    };
-    |Specifier error SEMI{
-    syntaxError+=1;
-    };
-    /*  |Specifier error{
-    syntaxError+=1; //shift/reduce error
-    }
-    */
-    |
-    error Specifier SEMI{
-    syntaxError+=1;
-    }
-ExtDecList: VarDec{//单个变量
-    $$=add_parsing_node("ExtDecList",@$.first_line);
-    fill_child_node($$,1,$1);
-};
-    | VarDec COMMA ExtDecList{//右递归的过程
-    $$=add_parsing_node("ExtDecList",@$.first_line);
-    fill_child_node($$,3,$1,$2,$3); 
-    };
-    |
-    VarDec error ExtDefList{//终结符位置需要考虑错误
-    syntaxError+=1;
-    }
-
-Specifier: TYPE{//类型或者是结构体
-    $$=add_parsing_node("Specifier",@$.first_line);
-    fill_child_node($$,1,$1);
-    };
-    | StructSpecifier{
-    $$=add_parsing_node("Specifier",@$.first_line);
-    fill_child_node($$,1,$1);
-    };
-StructSpecifier: STRUCT OptTag LC DefList RC{//这是定义结构体的基本格式，例如struct Complex { int real, image; }。其中OptTag可有可无，因此也可以这样写：struct { int real, image; }。
-    $$=add_parsing_node("StructSpecifier",@$.first_line);
-    fill_child_node($$,5,$1,$2,$3,$4,$5);
-    };
-    | STRUCT Tag{//不需要重新定义，struct Complex a, b
-    $$=add_parsing_node("StructSpecifier",@$.first_line);
-    fill_child_node($$,2,$1,$2); 
-    };
-OptTag:ID{
-    $$=add_parsing_node("OptTag",@$.first_line);
-    fill_child_node($$,1,$1);
-};
-    | {
-    $$=NULL;
-    };
-Tag:ID{//已经定义过的结构体，不可能为空
-    $$=add_parsing_node("Tag",@$.first_line);
-    fill_child_node($$,1,$1);
-};
-
-VarDec:ID{//int a中的a
-    $$=add_parsing_node("VarDec",@$.first_line);
-    fill_child_node($$,1,$1);
-};
-    | VarDec LB INT RB{//int a[10]中的a[10]
-        $$=add_parsing_node("VarDec",@$.first_line);
-        fill_child_node($$,4,$1,$2,$3,$4);
-    };
-    |VarDec LB error RB{
-    syntaxError+=1;
-    }
-FunDec:ID LP VarList RP{//函数头定义
-    $$=add_parsing_node("FunDec",@$.first_line);
-    fill_child_node($$,4,$1,$2,$3,$4);
-};
-    |  ID LP RP{//参数列表没有
-    $$=add_parsing_node("FunDec",@$.first_line);
-    fill_child_node($$,3,$1,$2,$3); 
-    };
-    |ID LP error RP{
-    syntaxError+=1;
-    }
-    |error LP VarList RP{
-        syntaxError+=1;
-    }
-VarList:ParamDec COMMA VarList{//参数列表，右递归
-    $$=add_parsing_node("VarList",@$.first_line);
-    fill_child_node($$,3,$1,$2,$3); 
-};
-    | ParamDec{//单独一个参数
-    $$=add_parsing_node("VarList",@$.first_line);
-    fill_child_node($$,1,$1);
-    };
-ParamDec:  Specifier VarDec{//类型+参数名
-    $$=add_parsing_node("ParamDec",@$.first_line);
-    fill_child_node($$,2,$1,$2);
-};
-
-CompSt:LC DefList StmtList RC{//先是一串变量定义+一串语句
-        $$=add_parsing_node("CompSt",@$.first_line);
-        fill_child_node($$,4,$1,$2,$3,$4);
-};
-
-StmtList:Stmt StmtList{//右递归或者空
-        $$=add_parsing_node("StmtList",@$.first_line);
-        fill_child_node($$,2,$1,$2);
-
-};
-                  | {
-         $$=NULL;
-                  };
-Stmt:Exp SEMI{//末尾是分号的表达式
-        $$=add_parsing_node("Stmt",@$.first_line);
-        fill_child_node($$,2,$1,$2);
-};        
-|CompSt{//花括号括起来的语句块
-        $$=add_parsing_node("Stmt",@$.first_line);
-        fill_child_node($$,1,$1);
-}; 
-|RETURN Exp SEMI{//return语句
-        $$=add_parsing_node("Stmt",@$.first_line);
-        fill_child_node($$,3,$1,$2,$3);
-};
-|IF LP Exp RP Stmt %prec LOWER_THAN_ELSE{//IF语句，优先级没有if else语句高
-        $$=add_parsing_node("Stmt",@$.first_line);
-        fill_child_node($$,5,$1,$2,$3,$4,$5);
-};
-|IF LP Exp RP Stmt ELSE Stmt{//IF语句
-        $$=add_parsing_node("Stmt",@$.first_line);
-        fill_child_node($$,7,$1,$2,$3,$4,$5,$6,$7);
-};
-|WHILE LP Exp RP Stmt{//while
-        $$=add_parsing_node("Stmt",@$.first_line);
-        fill_child_node($$,5,$1,$2,$3,$4,$5);
-};
-|error SEMI {
-    syntaxError+=1;
-};
-| Exp error SEMI{
-    syntaxError+=1;
-};
-|RETURN Exp error{
-    syntaxError+=1;
-};
-|RETURN error SEMI{
-    syntaxError+=1;
+%union {
+    int iVal;
+    OurType* ourType;
+    Program* program;
+    Identifier* identifier;
+    Parameter* parameter;
+    Expression* expression;
+    Statement* statement;
+    Extdeflist* extdeflist;
+    Parameterlist* parameterlist;
+    Statementlist* statementlist;
+    Declaration* extdef;
+    IntExpr* intExpr;
+    Var* var;
+    CallExpr* callExpr;
+    VarDec* varDec;
+    FunDec* funDec;
+    CompSt* compSt;
+    IfStatement* ifStatement;
+    WhileStatement* whileStatement;
+    ReturnStatement* returnStatement;
+    BinaryExpr::BinaryOp op;
+    ExpressionStmt* expressionstmt;
+    Arglist* arglist;
 }
 
+%token  LP RP LB RB LC RC COMMA MUL DIV UNEQUAL PLUS MINUS ASSIGN
+        GE GT LE LT EQUAL SEMI WHILE ELSE  
+        IF INT VOID RETURN TRUE FALSE AND TYPE OR NOT  FLOAT
 
-DefList:Def DefList{//声明时的右递归
-    $$=add_parsing_node("DefList",@$.first_line);
-    fill_child_node($$,2,$1,$2);
-};
-    | {
-    $$=NULL;               
-    };
-Def:Specifier DecList SEMI{
-    $$=add_parsing_node("Def",@$.first_line);
-    fill_child_node($$,3,$1,$2,$3);
 
-};|
-    Specifier error SEMI{
-      syntaxError+=1;
-    };
-  | 
-    Specifier DecList error{
-      syntaxError+=1;
-    };
-DecList:Dec{
-    $$=add_parsing_node("DecList",@$.first_line);
-    fill_child_node($$,1,$1);
+%token<iVal> NUM
+%token<identifier> ID
+%type <program> program
+%type <extdeflist> extdeflist
+%type <extdef> extdef
+%type <varDec> varDec lvarDec
+%type <funDec> funDec
+%type <ourType> specifier
+%type <compSt> compSt
+%type <parameterlist> parameterlist params
+%type <parameter> parameter
+%type <statementlist> statementlist
+%type <statement> statement elseclause 
+%type <expressionstmt>   expressionstmt
+%type <whileStatement>  iterationstmt
+%type <ifStatement> selectionstmt
+%type <returnStatement> returnstmt
+%type <expression> expression  simpleexpression  additiveexpression term factor
+%type <var> var
+%type <op> relop mulop addop
+%type <callExpr> call
+%type <arglist> args arglist
 
-};
-    | Dec COMMA DecList{;//左递归
-        $$=add_parsing_node("DecList",@$.first_line);
-        fill_child_node($$,3,$1,$2,$3);
-    }
-Dec:VarDec{//int a
-    $$=add_parsing_node("Dec",@$.first_line);
-    fill_child_node($$,1,$1);
-
-};
-    |VarDec ASSIGNOP Exp{//int a=1
-    $$=add_parsing_node("Dec",@$.first_line);
-    fill_child_node($$,3,$1,$2,$3);
-        };
-
-Exp:Exp ASSIGNOP Exp{
-        $$=add_parsing_node("Exp",@$.first_line);
-        fill_child_node($$,3,$1,$2,$3);
-
-};
-        | Exp AND Exp{
-        $$=add_parsing_node("Exp",@$.first_line);
-        fill_child_node($$,3,$1,$2,$3);
-
-        };
-        | Exp OR Exp{
-        $$=add_parsing_node("Exp",@$.first_line);
-        fill_child_node($$,3,$1,$2,$3);
-
-        };
-        | Exp RELOP Exp{
-        $$=add_parsing_node("Exp",@$.first_line);
-        fill_child_node($$,3,$1,$2,$3);
-
-        };
-        | Exp PLUS Exp{
-        $$=add_parsing_node("Exp",@$.first_line);
-        fill_child_node($$,3,$1,$2,$3);
-
-        };
-        |Exp MINUS Exp{
-        $$=add_parsing_node("Exp",@$.first_line);
-        fill_child_node($$,3,$1,$2,$3);
-
-        };
-        |Exp STAR Exp{
-        $$=add_parsing_node("Exp",@$.first_line);
-        fill_child_node($$,3,$1,$2,$3);
-
-        };
-        |Exp DIV Exp{
-        $$=add_parsing_node("Exp",@$.first_line);
-        fill_child_node($$,3,$1,$2,$3);
-
-        };
-        |LP Exp RP{
-        $$=add_parsing_node("Exp",@$.first_line);
-        fill_child_node($$,3,$1,$2,$3);
-
-        };
-        |MINUS Exp %prec UMINUS{
-        $$=add_parsing_node("Exp",@$.first_line);
-        fill_child_node($$,2,$1,$2);
-
-        };
-        |NOT Exp{
-        $$=add_parsing_node("Exp",@$.first_line);
-        fill_child_node($$,2,$1,$2);
-
-        };
-        |ID LP Args RP{
-        $$=add_parsing_node("Exp",@$.first_line);
-        fill_child_node($$,4,$1,$2,$3,$4);
-        };
-        |ID LP RP{
-        $$=add_parsing_node("Exp",@$.first_line);
-        fill_child_node($$,3,$1,$2,$3);
-
-        };
-        |Exp LB Exp RB{
-        $$=add_parsing_node("Exp",@$.first_line);
-        fill_child_node($$,4,$1,$2,$3,$4);
-
-        };
-        |Exp DOT ID{
-        $$=add_parsing_node("Exp",@$.first_line);
-        fill_child_node($$,3,$1,$2,$3);
-
-        };
-        |ID{
-        $$=add_parsing_node("Exp",@$.first_line);
-        fill_child_node($$,1,$1);
-
-        };
-        |INT {
-        $$=add_parsing_node("Exp",@$.first_line);
-        fill_child_node($$,1,$1);
-
-        };
-        |FLOAT{
-        $$=add_parsing_node("Exp",@$.first_line);
-        fill_child_node($$,1,$1);
-
-        };
-        |Exp ASSIGNOP error{
-          syntaxError+=1;
-        };
-        |Exp AND error{
-          syntaxError+=1;
-        };
-        |Exp OR error{
-          syntaxError+=1;
-        }
-        |Exp RELOP error{
-          syntaxError+=1;
-        }
-        |Exp PLUS error{
-          syntaxError+=1;
-        }
-        |Exp MINUS error{
-          syntaxError+=1;
-        }
-        |Exp STAR error{
-          syntaxError+=1;
-        }
-        |Exp DIV error{
-          syntaxError+=1;
-        }
-        |LP error RP{
-          syntaxError+=1;
-        }
-        |MINUS error{
-          syntaxError+=1;
-        }
-        |NOT error{
-          syntaxError+=1;
-        }
-        |ID LP error RP{
-          syntaxError+=1;
-        }
-        |Exp LB error RB{
-          syntaxError+=1;
-        }
-        
-Args:Exp COMMA Args{//实参列表
-        $$=add_parsing_node("Args",@$.first_line);
-        fill_child_node($$,3,$1,$2,$3);
-
-};
-          | Exp{
-        $$=add_parsing_node("Args",@$.first_line);
-        fill_child_node($$,1,$1);
-
-          };
 %%
-#include "lex.yy.c"
+program: extdeflist { root=$1; }
+    ;
+extdeflist: extdeflist extdef {$$=$1;$$->push_back($2);}
+    |   extdef {$$=new Extdeflist(); $$->push_back($1);};
+extdef: varDec {$$=$1;SET_LOCATION($$);} 
+    |   funDec {$$=$1;/*SET_LOCATION($$)*/;}
+    ;
+varDec: specifier ID SEMI {$$=new VarDec($1,$2,nullptr,true,0);/*SET_LOCATION($$)*/;}//单个数字
+    | specifier ID LB NUM RB SEMI{$$=new VarDec($1,$2,nullptr,true,$4);/*SET_LOCATION($$)*/;};//数组
 
-int yyerror(char*msg){
-  syntaxError+=1;
-  printf("Error type B at Line %d: %s.\n",yylineno,msg);
-}
-
-
-struct Node *add_parsing_node(char* Name,int column){
- struct Node * Root=(struct Node *)malloc(sizeof(struct Node));
- Root->child=NULL;
- Root->next_sib=NULL; 
- strcpy(Root->name,Name);
- Root->from=1;
- Root->type=OTHERS;
- Root->column=column;
-
-#ifdef DEBUGBISONNOW
-printf("name: %s\tline:%d\n",Name,column);
-#endif
-return Root;
-}
-
-void  fill_child_node(struct Node *parent,int num_args,...){//填充生成树的儿子
-va_list able;
-va_start(able,num_args);
-struct Node * indexnode=NULL;
-parent->child=va_arg(able,struct Node*);;
-indexnode=parent->child;
-for(int i=1;i<num_args;i++){
-   indexnode->next_sib=va_arg(able,struct Node*);
-   if(indexnode->next_sib!=NULL){
-     indexnode=indexnode->next_sib;
-   }
-}
-}
-
+specifier : INT {$$=new OurType(OurTypeID::MY_INT);/*SET_LOCATION($$)*/;} 
+    |   VOID {$$=new OurType(OurTypeID::MY_VOID);/*SET_LOCATION($$)*/;}
+    |   FLOAT {$$=new OurType(OurTypeID::MY_FLOAT);/*SET_LOCATION($$)*/;}
+    ;
+funDec : specifier ID LP params RP compSt{$$=new FunDec($1,$2,$4,$6);/*SET_LOCATION($$)*/;}
+    |    specifier ID LP params RP {$$=new FunDec($1,$2,$4,nullptr);/*SET_LOCATION($$)*/;}
+    ;
+params : parameterlist {$$=$1;/*SET_LOCATION($$)*/;}
+    |    VOID {$$=NULL;/*SET_LOCATION($$)*/;}
+    ;
+parameterlist : parameterlist COMMA parameter {$$=$1;$$->push_back($3);/*SET_LOCATION($$)*/;}
+    |   parameter {$$=new Parameterlist();$$->push_back($1);/*SET_LOCATION($$)*/;}
+    ;
+parameter : specifier ID {$$= new Parameter($1,$2,false);/*SET_LOCATION($$)*/;}
+    |   specifier ID LB RB {$$= new Parameter($1,$2,true);/*SET_LOCATION($$)*/;}
+    ;
+compSt : LC statementlist  RC {$$=new CompSt($2);/*SET_LOCATION($$)*/;}
+    ;
+statementlist : statementlist statement {$$=$1;$1->push_back($2);/*SET_LOCATION($$)*/;}
+    |      statementlist lvarDec {$$=$1;$1->push_back($2);/*SET_LOCATION($$)*/;}
+    |       {$$=new Statementlist();}
+    ;
+lvarDec : specifier ID SEMI {$$=new VarDec($1,$2,nullptr,false,0);/*SET_LOCATION($$)*/;}
+    | specifier ID LB NUM RB SEMI{$$=new VarDec($1,$2,nullptr,false,$4);/*SET_LOCATION($$)*/;}
+    ;
+statement :  selectionstmt {$$=$1;/*SET_LOCATION($$)*/;} 
+    |        expressionstmt {$$=$1;/*SET_LOCATION($$)*/;}
+    |       compSt  {$$=$1;/*SET_LOCATION($$)*/;}
+    |       iterationstmt {$$=$1;/*SET_LOCATION($$)*/;}
+    |       returnstmt    {$$=$1;/*SET_LOCATION($$)*/;}
+    ;
+selectionstmt :  IF LP expression RP statement elseclause {$$=new IfStatement($3,$5,$6);/*SET_LOCATION($$)*/;}
+;
+elseclause: ELSE statement {$$=$2;/*SET_LOCATION($$)*/;}
+    | %prec LOWERTHANELSE {$$=NULL;/*SET_LOCATION($$)*/;} 
+    ;
+expressionstmt : expression SEMI {$$=new ExpressionStmt($1);/*SET_LOCATION($$)*/;}
+    | SEMI {$$=NULL;/*SET_LOCATION($$)*/;}
+    ;
+iterationstmt : WHILE LP expression RP statement {$$=new WhileStatement($3,$5);/*SET_LOCATION($$)*/;}
+    ;
+returnstmt  : RETURN SEMI {$$=new ReturnStatement(NULL);/*SET_LOCATION($$)*/;} 
+    |         RETURN expression SEMI {$$=new ReturnStatement($2);/*SET_LOCATION($$)*/;}
+    ;
+expression : var ASSIGN expression {$$=new AssignStatement($1,$3);/*SET_LOCATION($$)*/;}
+    |        simpleexpression   {$$=$1;/*SET_LOCATION($$)*/;}
+    ;
+var : ID {$$=new Var($1,NULL);/*SET_LOCATION($$)*/;}
+    | ID LB expression RB {$$=new Var($1,$3);/*SET_LOCATION($$)*/;}
+    ;
+simpleexpression : additiveexpression relop additiveexpression {$$=new BinaryExpr($1,$2,$3);/*SET_LOCATION($$)*/;}
+    | additiveexpression {$$=$1;/*SET_LOCATION($$)*/;}
+    ;
+relop : UNEQUAL {$$=BinaryExpr::BinaryOp::BINARYOP_NE;/*SET_LOCATION($$)*/;}
+    | GE  {$$=BinaryExpr::BinaryOp::BINARYOP_GE;/*SET_LOCATION($$)*/;}
+    | GT  {$$=BinaryExpr::BinaryOp::BINARYOP_GT;/*SET_LOCATION($$)*/;}
+    | LE  {$$=BinaryExpr::BinaryOp::BINARYOP_LE;/*SET_LOCATION($$)*/;}
+    | LT  {$$=BinaryExpr::BinaryOp::BINARYOP_LT;/*SET_LOCATION($$)*/;}
+    | EQUAL {$$=BinaryExpr::BinaryOp::BINARYOP_EQ;/*SET_LOCATION($$)*/;}
+    ;
+additiveexpression : additiveexpression addop term {$$=new BinaryExpr($1,$2,$3);/*SET_LOCATION($$)*/;}
+    |              term {$$=$1;/*SET_LOCATION($$)*/;}
+    |              TRUE {$$=new IntExpr(1);/*SET_LOCATION($$)*/;}
+    |              FALSE {$$=new IntExpr(0);/*SET_LOCATION($$)*/;}
+    ;
+addop : PLUS {$$=BinaryExpr::BinaryOp::BINARYOP_ADD;/*SET_LOCATION($$)*/;}
+    |   MINUS {$$=BinaryExpr::BinaryOp::BINARYOP_SUB;/*SET_LOCATION($$)*/;}
+    ;
+term : term mulop factor {$$=new BinaryExpr($1,$2,$3);/*SET_LOCATION($$)*/;}
+    |   factor {$$=$1;/*SET_LOCATION($$)*/;}
+    ;
+mulop : MUL {$$=BinaryExpr::BinaryOp::BINARYOP_MUL;/*SET_LOCATION($$)*/;}
+    |   DIV {$$=BinaryExpr::BinaryOp::BINARYOP_DIV;/*SET_LOCATION($$)*/;}
+    ;
+factor :   LP expression RP {$$=$2;/*SET_LOCATION($$)*/;}
+    | var {$$=$1;/*SET_LOCATION($$)*/;}
+    | call {$$=$1;/*SET_LOCATION($$)*/;}
+    | NUM {$$=new IntExpr($1);/*SET_LOCATION($$)*/;}
+    ;
+call : ID LP args RP {$$ =new CallExpr($1,$3);/*SET_LOCATION($$)*/;}
+    ;
+args : arglist {$$=$1;/*SET_LOCATION($$)*/;}
+    | {$$=NULL;}
+    ;
+arglist : arglist COMMA expression {$$=$1;$$->push_back($3);/*SET_LOCATION($$)*/;}
+    | expression {$$=new Arglist();$$->push_back($1); /*SET_LOCATION($$)*/;}
+    ;
+%%

@@ -1,16 +1,27 @@
+%code requires {
+#include "codegen.hpp"
+#include <iostream>
+}
 %{
 #include <stdio.h>
 #include <stdarg.h>
+#include <iostream>
 #include"treenode.h"
 extern int yylineno;
+typedef struct Node* node;
+//#define YYSTYPE struct Node*
 int emptyflag=0;
 int emptystart=0;
 int syntaxError=0;
-//#define YYSTYPE struct Node*
 struct Node *add_parsing_node(char* Name,int column);
 void  fill_child_node(struct Node *parent,int num_args,...);
 void tree_search(struct Node* cur,int depth);
-extern struct Node* root;
+extern int yylex(void);
+void yyerror(const char *s) { 
+    std::printf("Error: %s\n", s);
+    std::exit(1); 
+}
+struct Node* root;
 %}
 %union {
   struct Node* node;
@@ -20,7 +31,7 @@ extern struct Node* root;
 //终结符类型绑定
 %token  <node>INT
 %token  <node>FLOAT
-%token  <node>ID
+%token  <node>MY_ID
 %token  <node>SEMI
 %token  <node>COMMA
 %token  <node>ASSIGNOP
@@ -34,12 +45,12 @@ extern struct Node* root;
 %token  <node>DOT
 %token  <node>NOT
 %token  <node>TYPE
-%token  <node>LP
+%token  <node>MY_LP
 %token  <node>RP
 %token  <node>LB
 %token  <node>RB
-%token  <node>LC
-%token  <node>RC
+%token  <node>MY_LC
+%token  <node>MY_RC
 %token  <node>STRUCT
 %token  <node>RETURN 
 %token  <node>IF
@@ -81,7 +92,7 @@ extern struct Node* root;
 %left UMINUS 
 %left  DOT 
 %left LB RB 
-%left LP RP
+%left MY_LP RP
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
 %% 
@@ -107,10 +118,6 @@ ExtDefList: ExtDef ExtDefList {
 ExtDef:Specifier ExtDecList SEMI{
     $$=add_parsing_node("ExtDef",@$.first_line);
     fill_child_node($$,3,$1,$2,$3); 
-    };
-    | Specifier SEMI{//结构体的定义
-    $$=add_parsing_node("ExtDef",@$.first_line);
-    fill_child_node($$,2,$1,$2); 
     };
     | Specifier FunDec CompSt{//函数体的定义,其中Specifier是返回类型，FunDec是函数头，CompSt表示函数体
     $$=add_parsing_node("ExtDef",@$.first_line);
@@ -151,53 +158,30 @@ Specifier: TYPE{//类型或者是结构体
     $$=add_parsing_node("Specifier",@$.first_line);
     fill_child_node($$,1,$1);
     };
-    | StructSpecifier{
-    $$=add_parsing_node("Specifier",@$.first_line);
-    fill_child_node($$,1,$1);
-    };
-StructSpecifier: STRUCT OptTag LC DefList RC{//这是定义结构体的基本格式，例如struct Complex { int real, image; }。其中OptTag可有可无，因此也可以这样写：struct { int real, image; }。
-    $$=add_parsing_node("StructSpecifier",@$.first_line);
-    fill_child_node($$,5,$1,$2,$3,$4,$5);
-    };
-    | STRUCT Tag{//不需要重新定义，struct Complex a, b
-    $$=add_parsing_node("StructSpecifier",@$.first_line);
-    fill_child_node($$,2,$1,$2); 
-    };
-OptTag:ID{
-    $$=add_parsing_node("OptTag",@$.first_line);
-    fill_child_node($$,1,$1);
-};
-    | {
-    $$=NULL;
-    };
-Tag:ID{//已经定义过的结构体，不可能为空
-    $$=add_parsing_node("Tag",@$.first_line);
-    fill_child_node($$,1,$1);
-};
 
-VarDec:ID{//int a中的a
+VarDec:MY_ID{//int a中的a
     $$=add_parsing_node("VarDec",@$.first_line);
     fill_child_node($$,1,$1);
 };
-    | VarDec LB INT RB{//int a[10]中的a[10]
+    | MY_ID LB INT RB{//int a[10]中的a[10]
         $$=add_parsing_node("VarDec",@$.first_line);
         fill_child_node($$,4,$1,$2,$3,$4);
     };
     |VarDec LB error RB{
     syntaxError+=1;
     }
-FunDec:ID LP VarList RP{//函数头定义
+FunDec:MY_ID MY_LP VarList RP{//函数头定义
     $$=add_parsing_node("FunDec",@$.first_line);
     fill_child_node($$,4,$1,$2,$3,$4);
 };
-    |  ID LP RP{//参数列表没有
+    |  MY_ID MY_LP RP{//参数列表没有
     $$=add_parsing_node("FunDec",@$.first_line);
     fill_child_node($$,3,$1,$2,$3); 
     };
-    |ID LP error RP{
+    |MY_ID MY_LP error RP{
     syntaxError+=1;
     }
-    |error LP VarList RP{
+    |error MY_LP VarList RP{
         syntaxError+=1;
     }
 VarList:ParamDec COMMA VarList{//参数列表，右递归
@@ -213,7 +197,7 @@ ParamDec:  Specifier VarDec{//类型+参数名
     fill_child_node($$,2,$1,$2);
 };
 
-CompSt:LC DefList StmtList RC{//先是一串变量定义+一串语句
+CompSt:MY_LC DefList StmtList MY_RC{//先是一串变量定义+一串语句
         $$=add_parsing_node("CompSt",@$.first_line);
         fill_child_node($$,4,$1,$2,$3,$4);
 };
@@ -221,9 +205,8 @@ CompSt:LC DefList StmtList RC{//先是一串变量定义+一串语句
 StmtList:Stmt StmtList{//右递归或者空
         $$=add_parsing_node("StmtList",@$.first_line);
         fill_child_node($$,2,$1,$2);
-
 };
-                  | {
+        | {
          $$=NULL;
                   };
 Stmt:Exp SEMI{//末尾是分号的表达式
@@ -238,15 +221,15 @@ Stmt:Exp SEMI{//末尾是分号的表达式
         $$=add_parsing_node("Stmt",@$.first_line);
         fill_child_node($$,3,$1,$2,$3);
 };
-|IF LP Exp RP Stmt %prec LOWER_THAN_ELSE{//IF语句，优先级没有if else语句高
+|IF MY_LP Exp RP Stmt %prec LOWER_THAN_ELSE{//IF语句，优先级没有if else语句高
         $$=add_parsing_node("Stmt",@$.first_line);
         fill_child_node($$,5,$1,$2,$3,$4,$5);
 };
-|IF LP Exp RP Stmt ELSE Stmt{//IF语句
+|IF MY_LP Exp RP Stmt ELSE Stmt{//IF语句
         $$=add_parsing_node("Stmt",@$.first_line);
         fill_child_node($$,7,$1,$2,$3,$4,$5,$6,$7);
 };
-|WHILE LP Exp RP Stmt{//while
+|WHILE MY_LP Exp RP Stmt{//while
         $$=add_parsing_node("Stmt",@$.first_line);
         fill_child_node($$,5,$1,$2,$3,$4,$5);
 };
@@ -342,7 +325,7 @@ Exp:Exp ASSIGNOP Exp{
         fill_child_node($$,3,$1,$2,$3);
 
         };
-        |LP Exp RP{
+        |MY_LP Exp RP{
         $$=add_parsing_node("Exp",@$.first_line);
         fill_child_node($$,3,$1,$2,$3);
 
@@ -357,26 +340,26 @@ Exp:Exp ASSIGNOP Exp{
         fill_child_node($$,2,$1,$2);
 
         };
-        |ID LP Args RP{
+        |MY_ID MY_LP Args RP{
         $$=add_parsing_node("Exp",@$.first_line);
         fill_child_node($$,4,$1,$2,$3,$4);
         };
-        |ID LP RP{
+        |MY_ID MY_LP RP{
         $$=add_parsing_node("Exp",@$.first_line);
         fill_child_node($$,3,$1,$2,$3);
 
         };
-        |Exp LB Exp RB{
+        |MY_ID LB Exp RB{
         $$=add_parsing_node("Exp",@$.first_line);
         fill_child_node($$,4,$1,$2,$3,$4);
 
         };
-        |Exp DOT ID{
+        |Exp DOT MY_ID{
         $$=add_parsing_node("Exp",@$.first_line);
         fill_child_node($$,3,$1,$2,$3);
 
         };
-        |ID{
+        |MY_ID{
         $$=add_parsing_node("Exp",@$.first_line);
         fill_child_node($$,1,$1);
 
@@ -415,7 +398,7 @@ Exp:Exp ASSIGNOP Exp{
         |Exp DIV error{
           syntaxError+=1;
         }
-        |LP error RP{
+        |MY_LP error RP{
           syntaxError+=1;
         }
         |MINUS error{
@@ -424,7 +407,7 @@ Exp:Exp ASSIGNOP Exp{
         |NOT error{
           syntaxError+=1;
         }
-        |ID LP error RP{
+        |MY_ID MY_LP error RP{
           syntaxError+=1;
         }
         |Exp LB error RB{
@@ -442,7 +425,6 @@ Args:Exp COMMA Args{//实参列表
 
           };
 %%
-#include "lex.yy.c"
 
 int yyerror(char*msg){
   syntaxError+=1;
@@ -450,8 +432,8 @@ int yyerror(char*msg){
 }
 
 
-struct Node *add_parsing_node(char* Name,int column){
- struct Node * Root=(struct Node *)malloc(sizeof(struct Node));
+struct Node* add_parsing_node(char* Name,int column){
+ struct Node* Root=(struct Node*)malloc(sizeof(struct Node));
  Root->child=NULL;
  Root->next_sib=NULL; 
  strcpy(Root->name,Name);

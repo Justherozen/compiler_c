@@ -2,22 +2,18 @@
 #define TREENODE_H
 #include <string.h>
 #include <stdio.h>
-#define _DEBUG_ 1
 
-#if _DEBUG_
-#define PR(...) printf(__VA_ARGS__)
-#else
-#define PR(...) 
-#endif
 typedef enum {
     LEX_INT=0,
     LEX_FLOAT=1,
     LEX_ID=2,
     LEX_TYPE=3,
-    OTHERS
+    OTHERS=4,
 }NODE_TYPE;
+
+extern FILE* fp;
 struct Node{
-    struct Node *child;//第一个孩子;
+    struct Node* child;//第一个孩子;
     struct Node* next_sib;//下一个兄弟节点
     char name[32];//节点名称
     union{
@@ -29,6 +25,7 @@ struct Node{
     int column;//表示行数;
     NODE_TYPE type;// 0 表示int,1表示float,2表示ID,3表示type;
 };
-extern void tree_search(struct Node* cur,int depth);
-
+void tree_search(struct Node* cur,int depth);
+void tree_search_vis(struct Node* cur,int depth,char fromname[32],int index,FILE* fp);
+void draw_syntax_tree(void);
 #endif

@@ -1,38 +1,36 @@
-CC = gcc
-FLEX = flex
-BISON = bison
-CFLAGS = -std=c99
+NAME = Cmm
 
-# 编译目标：src目录下的所有.c文件
-CFILES = $(shell find ./ -name "*.c")
-OBJS = $(CFILES:.c=.o)
-LFILE = $(shell find ./ -name "*.l")
-YFILE = $(shell find ./ -name "*.y")
-LFC = $(shell find ./ -name "*.l" | sed s/[^/]*\\.l/lex.yy.c/)
-YFC = $(shell find ./ -name "*.y" | sed s/[^/]*\\.y/syntax.tab.c/)
-LFO = $(LFC:.c=.o)
-YFO = $(YFC:.c=.o)
+LLVM_CONFIG = /usr/lib/llvm-10/bin/llvm-config
 
-parser: syntax $(filter-out $(LFO),$(OBJS))
-	$(CC) -o parser $(filter-out $(LFO),$(OBJS)) -lfl
+CXXFLAGS = `$(LLVM_CONFIG) --cppflags` -std=c++14 $(NO_WARNING)
+LDFLAGS = `$(LLVM_CONFIG) --ldflags`
+LIBS = `$(LLVM_CONFIG) --libs all`
 
-syntax: lexical syntax-c
-	$(CC) -c $(YFC) -o $(YFO)
+OBJS = treenode.o codegen.o syntaxparser.o lexscanner.o main.o
 
-lexical: $(LFILE)
-	$(FLEX) -o $(LFC) $(LFILE)
+all : $(NAME)
 
-syntax-c: $(YFILE)
-	$(BISON) -o $(YFC) -d -v $(YFILE)
+syntaxparser.cpp: syntax.y
+	yacc -d -Wno-yacc -o syntaxparser.cpp syntax.y
 
--include $(patsubst %.o, %.d, $(OBJS))
+syntaxparser.hpp: syntaxparser.cpp
 
+lexscanner.cpp: lexical.l
+	lex -o lexscanner.cpp lexical.l
 
-.PHONY: clean test
-test:
-	./parser ./test.cmm
+%.o: %.cpp
+	g++ -c $(CXXFLAGS) -g -o $@ $< 
+
+$(NAME): $(OBJS)
+	g++ -o $@ $(OBJS) $(LIBS) $(LDFLAGS)
+
+.PHONY: clean
 clean:
-	rm -f parser lex.yy.c syntax.tab.c syntax.tab.h syntax.output
-	rm -f $(OBJS) $(OBJS:.o=.d)
-	rm -f $(LFC) $(YFC) $(YFC:.c=.h)
-	rm -f *~
+	-rm -f lexscanner.cpp
+	-rm -f syntaxparser.cpp
+	-rm -f syntaxparser.hpp
+	-rm -f *.o
+	-rm -f $(NAME)
+
+draw: 
+	dot -Tpng drawsyntextree.dot -o syntextree.png

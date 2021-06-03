@@ -1,3 +1,4 @@
+#include<stdio.h>
 int totalnum;
 int data[10000];
 int QS(int low, int high)
@@ -18,15 +19,17 @@ int QS(int low, int high)
     }
     while(first < last)
     {
-
         while((first<last) && (data[last]>=key)){ 
             last=last-1;
+            printf("cut1");
         }
         funtmp=data[last];
         data[first] = funtmp;
         while((first<last) && (data[first]<=key)){
             first=first+1;
+            printf("cut2");
         }
+        printf("cut3");
         funtmp= data[first];
         data[last]=funtmp;
     }
@@ -40,13 +43,12 @@ int QS(int low, int high)
 int main(){
     int tmp;
     int i;
-    string test;
     int indextotalnum;
-    scanf(totalnum);
+    scanf("%d",&totalnum);
     i=0;
     indextotalnum=totalnum-1;
     while(i<totalnum){
-        scanf(tmp);
+        scanf("%d",&tmp);
         data[i]=tmp;
         i=i+1;
     }
@@ -54,7 +56,7 @@ int main(){
     i=0;
     while(i<totalnum){
         tmp=data[i];
-        printf(tmp);
+        printf("%d",tmp);
         i=i+1;
     }
     return 0;

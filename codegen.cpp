@@ -62,7 +62,7 @@ Value *ExtDec_codeGen(struct Node* root){
 	if(strcmp(root->child->child->string_contant,"int")==0)
 		tp = Type::getInt32Ty(generator.context);
 	else if(strcmp(root->child->child->string_contant,"float")==0)
-		tp = Type::getDoubleTy(generator.context);
+		tp = Type::getFloatTy(generator.context);
 	std::string var_type = root->child->child->string_contant;
 	while(vardec !=nullptr){
 		Value *init_value = nullptr;
@@ -70,7 +70,7 @@ Value *ExtDec_codeGen(struct Node* root){
 		if(var_type == "int")
 			init_value = generator.builder->getInt32(0);
 		else if(var_type == "float")
-			init_value = ConstantFP::get(generator.builder->getDoubleTy(), 0);
+			init_value = ConstantFP::get(generator.builder->getFloatTy(), 0);
 		Value *alloc = nullptr;
 		/* is var */
 		if (vardec->child->next_sib == nullptr){
@@ -106,7 +106,7 @@ Value *FunDec_codeGen(struct Node* root){
 	if(func_tp=="int")
 		tp = Type::getInt32Ty(generator.context);
 	else if(func_tp=="float")
-		tp = Type::getDoubleTy(generator.context);
+		tp = Type::getFloatTy(generator.context);
 	else
 		tp = Type::getVoidTy(generator.context);
 	FunctionType *func_type;
@@ -115,28 +115,37 @@ Value *FunDec_codeGen(struct Node* root){
 		func_type = FunctionType::get(tp, false);
 	else
 	{
-		LogErrorV("Fun_arg");
 		struct Node *paramdec = ID->next_sib->next_sib->child;
 		std::vector<Type *> arg_types;
 		Type* tmp;
-		if(strcmp(paramdec->child->child->string_contant,"int")==0)
-			tmp = Type::getInt32Ty(generator.context);
-		else if(strcmp(paramdec->child->child->string_contant,"float")==0)
-			tmp = Type::getDoubleTy(generator.context);
-		else if(strcmp(paramdec->child->child->string_contant,"string")==0)
-			tmp = ConstantDataArray::getString(generator.context,"get_type_name")->getType();
-		arg_types.push_back(tmp);
-		while (paramdec->next_sib!=nullptr)
+		while (paramdec!=nullptr)
 		{
 			LogErrorV("Fun_arg");
-			paramdec = paramdec->next_sib->next_sib->child;
-			if(strcmp(paramdec->child->child->string_contant,"int")==0)
-				tmp = Type::getInt32Ty(generator.context);
-			else if(strcmp(paramdec->child->child->string_contant,"float")==0)
-				tmp = Type::getDoubleTy(generator.context);
+			
+			if(strcmp(paramdec->child->child->string_contant,"int")==0){
+				if(paramdec->child->next_sib->child->next_sib==nullptr)
+					tmp = Type::getInt32Ty(generator.context);
+				else
+				{
+					int range = 1000;
+					tmp = ArrayType::get(Type::getInt32Ty(generator.context), range);
+				}
+			}
+			else if(strcmp(paramdec->child->child->string_contant,"float")==0){
+				if(paramdec->child->next_sib->child->next_sib==nullptr)
+					tmp = Type::getFloatTy(generator.context);
+				else
+				{
+					int range = 1000;
+					tmp = ArrayType::get(Type::getFloatTy(generator.context), range);
+				}
+			}
 			else if(strcmp(paramdec->child->child->string_contant,"string")==0)
 				tmp = ConstantDataArray::getString(generator.context,"get_type_name")->getType();
 			arg_types.push_back(tmp);
+			if(paramdec->next_sib == nullptr)
+				break;
+			paramdec = paramdec->next_sib->next_sib->child;
 		}
 		func_type = FunctionType::get(tp, arg_types, false);
 	}
@@ -183,8 +192,8 @@ Value *FunDec_codeGen(struct Node* root){
 		generator.builder->CreateRetVoid();
 	else if (tp->isIntegerTy())
 		generator.builder->CreateRet(generator.builder->getInt32(-1));
-	else if(tp->isDoubleTy())
-		generator.builder->CreateRet(ConstantFP::get(generator.builder->getDoubleTy(), -1));
+	else if(tp->isFloatTy())
+		generator.builder->CreateRet(ConstantFP::get(generator.builder->getFloatTy(), -1));
 	else
 		generator.setCurFunction(nullptr);
 	return nullptr;
@@ -204,7 +213,7 @@ Value *def_codeGen(struct Node* root){
 			tp = Type::getInt32Ty(generator.context);
 		}
 		else if(strcmp(def->child->child->string_contant,"float")==0){
-			tp = Type::getDoubleTy(generator.context);
+			tp = Type::getFloatTy(generator.context);
 		}
 		else if(strcmp(def->child->child->string_contant,"string")==0){
 			tp = getstrtype->getType();
@@ -216,7 +225,7 @@ Value *def_codeGen(struct Node* root){
 			if(var_type=="int")
 				init_value = generator.builder->getInt32(0);
 			else if(var_type=="float")
-				init_value = ConstantFP::get(generator.builder->getDoubleTy(), 0);
+				init_value = ConstantFP::get(generator.builder->getFloatTy(), 0);
 			Value *alloc = nullptr;
 			if (dec->child->child->next_sib == nullptr)
 				alloc = generator.builder->CreateAlloca(tp, nullptr, dec->child->child->string_contant);
@@ -332,6 +341,7 @@ Value* assign_codeGen(struct Node* root){
 		if (var_value == nullptr)
 		{
 			/* Search for variable in global */
+			printf("look up global");
 			var_value = generator.module->getGlobalVariable(var_name);
 			if (var_value == nullptr)
 				throw std::logic_error("[ERROR]Undeclared variable " + var_name);
@@ -410,7 +420,7 @@ Value *int_codeGen(struct Node* root){
 
 Value *float_codeGen(struct Node* root){
 	LogErrorV("FloatExp");
-	return ConstantFP::get(generator.builder->getDoubleTy(), root->float_contant);
+	return ConstantFP::get(generator.builder->getFloatTy(), root->float_contant);
 }
 
 Value *string_codeGen(struct Node* root)
@@ -429,21 +439,22 @@ Value *Var_codeGen(struct Node* root){
 	if (root->child->next_sib == nullptr)
 	{
 		std::string var_name = root->child->string_contant;
-		Value *var_value = nullptr;
+		Value *var_ptr = nullptr;
 		/* Search for variable in current function */
-		var_value = generator.getCurFunction()->getValueSymbolTable()->lookup(var_name);
-		if (var_value != nullptr)
+		var_ptr = generator.getCurFunction()->getValueSymbolTable()->lookup(var_name);
+		if (var_ptr == nullptr)
+				{
+					/* Search for variable in global */
+					var_ptr = generator.module->getGlobalVariable(var_name);
+					if (var_ptr == nullptr)
+						throw std::logic_error("[ERROR]Var: Undeclared variable " + var_name);
+				}
+		Value *var_value = generator.builder->CreateLoad(var_ptr, "tmp_var_value");
+		if (var_value->getType()->isArrayTy())
 		{
-			if (var_value->getType()->isPointerTy())
-				return generator.builder->CreateLoad(var_value, "tmp_value");
-			else
-				return var_value;
+			var_value = generator.builder->CreateConstGEP2_32(var_value->getType(), var_ptr, 0, 0, "tmp_array_pointer");
 		}
 		/* Search for variable in global */
-		var_value = generator.module->getGlobalVariable(var_name);
-		if (var_value == nullptr)
-			throw std::logic_error("[ERROR]Undeclared variable " + var_name);
-		generator.builder->CreateLoad(var_value, "tmp_var");
 		return var_value;
 	}
 	else
@@ -456,20 +467,31 @@ Value *Var_codeGen(struct Node* root){
 		std::vector<Value *> array_ref_v;
 		array_ref_v.push_back(generator.builder->getInt32(0));
 		array_ref_v.push_back(index_value);
+		std::vector<Value *> array_pointer_v;
+		array_pointer_v.push_back(index_value);
 		/* Search for variable in current function */
 		array_addr = generator.getCurFunction()->getValueSymbolTable()->lookup(var_name);
-		if (array_addr != nullptr)
+		if (array_addr == nullptr)
 		{
-			ptr = generator.builder->CreateInBoundsGEP(array_addr, array_ref_v, "tmp_array_ptr");
+			/* Search for variable in global space */
+			array_addr = generator.module->getGlobalVariable(var_name);
+			if (array_addr == nullptr)
+				throw std::logic_error("[ERROR]Var: Undeclared variable " + var_name);
+		}
+		Value *array_value = generator.builder->CreateLoad(array_addr, "tmp_var_value");
+		if (array_value->getType()->isPointerTy())
+		{
+			ptr = generator.builder->CreateGEP(array_value, array_pointer_v, "tmp_array_pointer");
 			return generator.builder->CreateLoad(ptr, "tmp_array_value");
 		}
-		/* Search for variable in global space */
-		array_addr = generator.module->getGlobalVariable(var_name);
-		if (array_addr == nullptr)
-			throw std::logic_error("[ERROR]Undeclared variable " + var_name);
-		ptr = generator.builder->CreateInBoundsGEP(array_addr, array_ref_v, "tmp_array_ptr");
-		return generator.builder->CreateLoad(ptr, "tmp_array_value");
+		else if (array_value->getType()->isArrayTy())
+		{
+			ptr = generator.builder->CreateGEP(array_addr, array_ref_v, "tmp_array_ptr");
+			return generator.builder->CreateLoad(ptr, "tmp_array_value");
+		}
+		return nullptr;
 	}
+	
 }
 
 Value *Return_codeGen(struct Node *root){
@@ -632,7 +654,6 @@ Value *CallExpr_codeGen(struct Node *root){
 	}
 	return generator.builder->CreateCall(callee_func, args_vec, "tmp_call");
 }
-
 Value* If_codeGen(struct Node *root){
 	LogErrorV("IfStatement");
 	Value *cond_value =Exp_codeGen(root->child->next_sib->next_sib);

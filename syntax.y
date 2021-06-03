@@ -164,9 +164,13 @@ VarDec:MY_ID{//int a中的a
     $$=add_parsing_node("VarDec",@$.first_line);
     fill_child_node($$,1,$1);
 };
-    |MY_ID LB INT RB{//int a[10]中的a[10]
+    | MY_ID LB INT RB{//int a[10]中的a[10]
         $$=add_parsing_node("VarDec",@$.first_line);
         fill_child_node($$,4,$1,$2,$3,$4);
+    };
+    | MY_ID LB RB{//int a[10]中的a[10]
+        $$=add_parsing_node("VarDec",@$.first_line);
+        fill_child_node($$,3,$1,$2,$3);
     };
     |VarDec LB error RB{
     syntaxError+=1;

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "syntaxparser.hpp"
 #include "treenode.h"
+#include "semantic.h"
 #include <fstream>
 #include "codegen.hpp"
 #include <map>

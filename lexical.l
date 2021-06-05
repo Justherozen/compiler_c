@@ -229,10 +229,28 @@ WhiteSpace  [ \t\r\n]+
         strcpy(yylval.node->string_contant,cuttemp.c_str());
         printf("%s",yylval.node->string_contant);
         return STRING;}
+        
+
+\'\\.\'   {fill_yylval("CHAR",LEX_CHAR);
+            if(yytext[2]=='n'){
+        yylval.node->char_contant = '\n';}
+        else if(yytext[2]=='t'){
+            yylval.node->char_contant = '\t';
+        }
+        else{
+            yylval.node->char_contant = '\0';
+        }
+        printf("%c",yylval.node->char_contant);
+        return CHAR;}
+
 {CHAR}   {fill_yylval("CHAR",LEX_CHAR);
         yylval.node->char_contant = yytext[1];
         printf("%c",yylval.node->char_contant);
         return CHAR;}
+
+
+
+
 {MY_ID} {printfdebug("ID");
         emptyflag=1;
         fill_yylval("ID",LEX_ID);

@@ -6,11 +6,11 @@ course project of compiler principle
 
 ### Assignment
 
-Xiao：词法分析(√)、语法分析（√），语法树可视化（√），生成中间代码与目标代码（√），宏函数替换 （√）expected ddl:5 24
+Xiao：词法分析(√)、语法分析（√），语法树可视化（√），生成中间代码与目标代码（√），宏函数替换 （√），循环优化（）测试程序1&2(√)  expected ddl:5 24
 
 
 
-Yu：生成中间代码与生成目标代码 （√）、报告撰写（）  expected ddl:5 29
+Yu：生成中间代码与生成目标代码 （√）、报告撰写（）测试程序3 (√)  expected ddl:5 29
 
 
 
@@ -18,9 +18,29 @@ Yu：生成中间代码与生成目标代码 （√）、报告撰写（）  exp
 
 测试点2：pass （`matrix_multiply` branch）:tested by Xiao
 
-测试点3:  to do by Yu
+测试点3:   pass  tested by Xiao
+
+测试点全部通过.
+
+完成的进阶主题：宏函数与宏替换、循环展开优化、其他。。。。
 
 
+
+usage:
+
+`make` to compile and `make clean` to clean the result of past.
+
+`make draw` to generate the picture of syntax tree.(in `syntaxtree.png)`
+
+you can also `./compile.sh` to finish all work of compiling and test.
+
+`./submit1.sh` to test quicksort
+
+`./submit1.sh` to test matrix multiplication
+
+`./submit1.sh` to test auto_adviser
+
+`./submitmacro.sh` to show the example of macro function
 
 ### Quick Start
 
@@ -170,14 +190,25 @@ Args -> Exp COMMA Args
 | Exp
 ```
 
-#### 符号表结构：
 
-基于十字链表与open hashing散列表
 
-![image-20210524134922608](README.assets/image-20210524134922608.png)
 
-#### 类型表示：
 
-结构体的类型结构表示如下
+##### 语法树结构：
 
-![image-20210524134911970](README.assets/image-20210524134911970.png)
+child----sibling的多叉树结构
+
+**可视化**：graphviz
+
+
+
+##### 中间代码生成：
+
+调用llvm生成llvm中间代码
+
+
+
+##### 目标代码生成：
+
+clang
+

@@ -1,0 +1,393 @@
+treenode.cpp: In function ‘void draw_syntax_tree()’:
+treenode.cpp:40:28: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+   40 |     tree_search_vis(root,0,"Program",0,fp);
+      |                            ^~~~~~~~~
+treenode.cpp: In function ‘void tree_search_vis(Node*, int, char*, int, FILE*)’:
+treenode.cpp:55:44: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+   55 |         tree_search_vis(cur->child,depth+1,"Program",0,fp);
+      |                                            ^~~~~~~~~
+codegen.cpp: In function ‘llvm::Value* Binary_codeGen(Node*)’:
+codegen.cpp:558:1: warning: control reaches end of non-void function [-Wreturn-type]
+  558 | }
+      | ^
+syntax.y:68.14-28: warning: symbol ‘StructSpecifier’ is used, but is not defined as a token and has no rules [-Wother]
+   68 | %type  <node>StructSpecifier
+      |              ^~~~~~~~~~~~~~~
+syntax.y:69.13-18: warning: symbol ‘OptTag’ is used, but is not defined as a token and has no rules; did you mean ‘Tag’? [-Wother]
+   69 | %type <node>OptTag
+      |             ^~~~~~
+      |             Tag
+syntax.y:70.14-16: warning: symbol ‘Tag’ is used, but is not defined as a token and has no rules; did you mean ‘OptTag’? [-Wother]
+   70 | %type  <node>Tag
+      |              ^~~
+      |              OptTag
+syntax.y: warning: 3 nonterminals useless in grammar [-Wother]
+syntax.y:68.14-28: warning: nonterminal useless in grammar: StructSpecifier [-Wother]
+   68 | %type  <node>StructSpecifier
+      |              ^~~~~~~~~~~~~~~
+syntax.y:69.13-18: warning: nonterminal useless in grammar: OptTag [-Wother]
+   69 | %type <node>OptTag
+      |             ^~~~~~
+syntax.y:70.14-16: warning: nonterminal useless in grammar: Tag [-Wother]
+   70 | %type  <node>Tag
+      |              ^~~
+syntax.y: warning: 3 shift/reduce conflicts [-Wconflicts-sr]
+syntax.y: In function ‘int yyparse()’:
+syntax.y:103:35: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  103 |     $$=add_parsing_node("Program",@$.first_line);
+      |                                   ^~~~~~~~~
+syntax.y:111:35: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  111 |     $$=add_parsing_node("ExtDefList",@$.first_line);
+      |                                   ^~~~~~~~~~~~
+syntax.y:121:35: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  121 |     $$=add_parsing_node("ExtDef",@$.first_line);
+      |                                   ^~~~~~~~
+syntax.y:125:35: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  125 |     $$=add_parsing_node("ExtDef",@$.first_line);
+      |                                   ^~~~~~~~
+syntax.y:129:35: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  129 |     $$=add_parsing_node("ExtDef",@$.first_line);
+      |                                   ^~~~~~~~
+syntax.y:147:35: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  147 |     $$=add_parsing_node("ExtDecList",@$.first_line);
+      |                                   ^~~~~~~~~~~~
+syntax.y:151:35: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  151 |     $$=add_parsing_node("ExtDecList",@$.first_line);
+      |                                   ^~~~~~~~~~~~
+syntax.y:160:35: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  160 |     $$=add_parsing_node("Specifier",@$.first_line);
+      |                                   ^~~~~~~~~~~
+syntax.y:165:35: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  165 |     $$=add_parsing_node("VarDec",@$.first_line);
+      |                                   ^~~~~~~~
+syntax.y:169:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  169 |         $$=add_parsing_node("VarDec",@$.first_line);
+      |                                       ^~~~~~~~
+syntax.y:173:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  173 |         $$=add_parsing_node("VarDec",@$.first_line);
+      |                                       ^~~~~~~~
+syntax.y:180:35: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  180 |     $$=add_parsing_node("FunDec",@$.first_line);
+      |                                   ^~~~~~~~
+syntax.y:184:35: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  184 |     $$=add_parsing_node("FunDec",@$.first_line);
+      |                                   ^~~~~~~~
+syntax.y:194:35: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  194 |     $$=add_parsing_node("VarList",@$.first_line);
+      |                                   ^~~~~~~~~
+syntax.y:198:35: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  198 |     $$=add_parsing_node("VarList",@$.first_line);
+      |                                   ^~~~~~~~~
+syntax.y:202:35: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  202 |     $$=add_parsing_node("ParamDec",@$.first_line);
+      |                                   ^~~~~~~~~~
+syntax.y:207:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  207 |         $$=add_parsing_node("CompSt",@$.first_line);
+      |                                       ^~~~~~~~
+syntax.y:212:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  212 |         $$=add_parsing_node("StmtList",@$.first_line);
+      |                                       ^~~~~~~~~~
+syntax.y:219:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  219 |         $$=add_parsing_node("Stmt",@$.first_line);
+      |                                       ^~~~~~
+syntax.y:223:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  223 |         $$=add_parsing_node("Stmt",@$.first_line);
+      |                                       ^~~~~~
+syntax.y:227:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  227 |         $$=add_parsing_node("Stmt",@$.first_line);
+      |                                       ^~~~~~
+syntax.y:231:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  231 |         $$=add_parsing_node("Stmt",@$.first_line);
+      |                                       ^~~~~~
+syntax.y:235:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  235 |         $$=add_parsing_node("Stmt",@$.first_line);
+      |                                       ^~~~~~
+syntax.y:239:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  239 |         $$=add_parsing_node("Stmt",@$.first_line);
+      |                                       ^~~~~~
+syntax.y:257:35: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  257 |     $$=add_parsing_node("DefList",@$.first_line);
+      |                                   ^~~~~~~~~
+syntax.y:264:35: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  264 |     $$=add_parsing_node("Def",@$.first_line);
+      |                                   ^~~~~
+syntax.y:276:35: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  276 |     $$=add_parsing_node("DecList",@$.first_line);
+      |                                   ^~~~~~~~~
+syntax.y:281:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  281 |         $$=add_parsing_node("DecList",@$.first_line);
+      |                                       ^~~~~~~~~
+syntax.y:285:35: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  285 |     $$=add_parsing_node("Dec",@$.first_line);
+      |                                   ^~~~~
+syntax.y:290:35: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  290 |     $$=add_parsing_node("Dec",@$.first_line);
+      |                                   ^~~~~
+syntax.y:295:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  295 |         $$=add_parsing_node("Exp",@$.first_line);
+      |                                       ^~~~~
+syntax.y:300:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  300 |         $$=add_parsing_node("Exp",@$.first_line);
+      |                                       ^~~~~
+syntax.y:305:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  305 |         $$=add_parsing_node("Exp",@$.first_line);
+      |                                       ^~~~~
+syntax.y:310:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  310 |         $$=add_parsing_node("Exp",@$.first_line);
+      |                                       ^~~~~
+syntax.y:315:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  315 |         $$=add_parsing_node("Exp",@$.first_line);
+      |                                       ^~~~~
+syntax.y:320:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  320 |         $$=add_parsing_node("Exp",@$.first_line);
+      |                                       ^~~~~
+syntax.y:325:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  325 |         $$=add_parsing_node("Exp",@$.first_line);
+      |                                       ^~~~~
+syntax.y:330:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  330 |         $$=add_parsing_node("Exp",@$.first_line);
+      |                                       ^~~~~
+syntax.y:335:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  335 |         $$=add_parsing_node("Exp",@$.first_line);
+      |                                       ^~~~~
+syntax.y:340:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  340 |         $$=add_parsing_node("Exp",@$.first_line);
+      |                                       ^~~~~
+syntax.y:345:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  345 |         $$=add_parsing_node("Exp",@$.first_line);
+      |                                       ^~~~~
+syntax.y:350:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  350 |         $$=add_parsing_node("Exp",@$.first_line);
+      |                                       ^~~~~
+syntax.y:354:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  354 |         $$=add_parsing_node("Exp",@$.first_line);
+      |                                       ^~~~~
+syntax.y:359:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  359 |         $$=add_parsing_node("Exp",@$.first_line);
+      |                                       ^~~~~
+syntax.y:364:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  364 |         $$=add_parsing_node("Exp",@$.first_line);
+      |                                       ^~~~~
+syntax.y:369:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  369 |         $$=add_parsing_node("Exp",@$.first_line);
+      |                                       ^~~~~
+syntax.y:374:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  374 |         $$=add_parsing_node("Exp",@$.first_line);
+      |                                       ^~~~~
+syntax.y:379:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  379 |         $$=add_parsing_node("Exp",@$.first_line);
+      |                                       ^~~~~
+syntax.y:384:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  384 |         $$=add_parsing_node("Exp",@$.first_line);
+      |                                       ^~~~~
+syntax.y:389:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  389 |         $$=add_parsing_node("Exp",@$.first_line);
+      |                                       ^~~~~
+syntax.y:434:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  434 |         $$=add_parsing_node("Args",@$.first_line);
+      |                                       ^~~~~~
+syntax.y:439:39: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  439 |         $$=add_parsing_node("Args",@$.first_line);
+      |                                       ^~~~~~
+syntax.y: In function ‘int yyerror(char*)’:
+syntax.y:448:1: warning: no return statement in function returning non-void [-Wreturn-type]
+  448 | }
+      | ^
+lexical.l:260: warning, rule cannot be matched
+lexical.l: In function ‘int yylex()’:
+lexical.l:69:17: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+   69 |     printfdebug("HEX");
+      |                 ^~~~~
+lexical.l:70:17: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+   70 |     fill_yylval("INT",LEX_INT);
+      |                 ^~~~~
+lexical.l:78:17: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+   78 |     fill_yylval("INT",LEX_INT);
+      |                 ^~~~~
+lexical.l:84:17: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+   84 |     printfdebug("OCT");
+      |                 ^~~~~
+lexical.l:85:17: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+   85 |     fill_yylval("INT",LEX_INT);
+      |                 ^~~~~
+lexical.l:93:17: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+   93 |     fill_yylval("INT",LEX_INT);
+      |                 ^~~~~
+lexical.l:99:17: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+   99 |     printfdebug("DEC");
+      |                 ^~~~~
+lexical.l:100:17: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  100 |     fill_yylval("INT",LEX_INT);
+      |                 ^~~~~
+lexical.l:108:17: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  108 |     fill_yylval("INT",LEX_INT);
+      |                 ^~~~~
+lexical.l:114:17: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  114 |     printfdebug("FLOAT");
+      |                 ^~~~~~~
+lexical.l:115:17: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  115 |     fill_yylval("FLOAT",LEX_FLOAT);
+      |                 ^~~~~~~
+lexical.l:122:17: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  122 |     fill_yylval("FLOAT",LEX_FLOAT);
+      |                 ^~~~~~~
+lexical.l:128:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  128 | {SEMI} {printfdebug("SEMI");
+      |              ^~~~~~
+lexical.l:129:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  129 |         fill_yylval("SEMI",OTHERS);
+      |                     ^~~~~~
+lexical.l:133:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  133 |         fill_yylval("COMMA",OTHERS);
+      |                     ^~~~~~~
+lexical.l:136:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  136 | {ASSIGNOP} {printfdebug("assignop");
+      |              ^~~~~~~~~~
+lexical.l:137:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  137 |         fill_yylval("ASSIGNOP",OTHERS);
+      |                     ^~~~~~~~~~
+lexical.l:140:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  140 | {RELOP} {printfdebug("RELOP");
+      |              ^~~~~~~
+lexical.l:141:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  141 |         fill_yylval("RELOP",OTHERS);
+      |                     ^~~~~~~
+lexical.l:145:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  145 | {PLUS} {printfdebug("plus");
+      |              ^~~~~~
+lexical.l:146:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  146 |         fill_yylval("PLUS",OTHERS);
+      |                     ^~~~~~
+lexical.l:149:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  149 | {MINUS} {printfdebug("minus");
+      |              ^~~~~~~
+lexical.l:150:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  150 |         fill_yylval("MINUS",OTHERS);
+      |                     ^~~~~~~
+lexical.l:153:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  153 | {STAR} {printfdebug("star");
+      |              ^~~~~~
+lexical.l:154:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  154 |         fill_yylval("STAR",OTHERS);
+      |                     ^~~~~~
+lexical.l:157:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  157 | {DIV} {printfdebug("div");
+      |              ^~~~~
+lexical.l:158:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  158 |         fill_yylval("DIV",OTHERS);
+      |                     ^~~~~
+lexical.l:161:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  161 | {AND}  {printfdebug("and");
+      |              ^~~~~
+lexical.l:162:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  162 |         fill_yylval("AND",OTHERS);
+      |                     ^~~~~
+lexical.l:165:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  165 | {OR}  {printfdebug("or");
+      |              ^~~~
+lexical.l:166:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  166 |         fill_yylval("OR",OTHERS);
+      |                     ^~~~
+lexical.l:169:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  169 | {DOT} {printfdebug("dot");
+      |              ^~~~~
+lexical.l:170:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  170 |         fill_yylval("DOT",OTHERS);
+      |                     ^~~~~
+lexical.l:173:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  173 | {NOT} {printfdebug("not");
+      |              ^~~~~
+lexical.l:174:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  174 |         fill_yylval("NOT",OTHERS);
+      |                     ^~~~~
+lexical.l:177:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  177 | {TYPE} {printfdebug("type");
+      |              ^~~~~~
+lexical.l:179:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  179 |         fill_yylval("TYPE",LEX_TYPE);
+      |                     ^~~~~~
+lexical.l:182:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  182 | {MY_LP}  {printfdebug("LP");
+      |              ^~~~
+lexical.l:184:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  184 |         fill_yylval("LP",OTHERS);
+      |                     ^~~~
+lexical.l:186:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  186 | {RP} {printfdebug("RP");
+      |              ^~~~
+lexical.l:188:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  188 |         fill_yylval("RP",OTHERS);
+      |                     ^~~~
+lexical.l:190:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  190 | {LB} {printfdebug("LB");
+      |              ^~~~
+lexical.l:192:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  192 |         fill_yylval("LB",OTHERS);
+      |                     ^~~~
+lexical.l:194:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  194 | {RB} {printfdebug("RB");
+      |              ^~~~
+lexical.l:196:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  196 |         fill_yylval("RB",OTHERS);
+      |                     ^~~~
+lexical.l:198:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  198 | {MY_LC} {printfdebug("LC");
+      |              ^~~~
+lexical.l:200:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  200 |         fill_yylval("LC",OTHERS);
+      |                     ^~~~
+lexical.l:202:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  202 | {MY_RC} {printfdebug("RC");
+      |              ^~~~
+lexical.l:204:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  204 |         fill_yylval("RC",OTHERS);
+      |                     ^~~~
+lexical.l:206:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  206 | {STRUCT} {printfdebug("STRUCT");
+      |              ^~~~~~~~
+lexical.l:208:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  208 |         fill_yylval("STRUCT",OTHERS);
+      |                     ^~~~~~~~
+lexical.l:210:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  210 | {RETURN}  {printfdebug("return");
+      |              ^~~~~~~~
+lexical.l:212:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  212 |         fill_yylval("RETURN",OTHERS);
+      |                     ^~~~~~~~
+lexical.l:214:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  214 | {IF}  {printfdebug("if");
+      |              ^~~~
+lexical.l:216:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  216 |         fill_yylval("IF",OTHERS);
+      |                     ^~~~
+lexical.l:218:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  218 | {ELSE}  {printfdebug("else");
+      |              ^~~~~~
+lexical.l:220:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  220 |         fill_yylval("ELSE",OTHERS);
+      |                     ^~~~~~
+lexical.l:222:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  222 | {WHILE} {printfdebug("while");
+      |              ^~~~~~~
+lexical.l:224:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  224 |         fill_yylval("WHILE",OTHERS);
+      |                     ^~~~~~~
+lexical.l:226:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  226 | {STR}   {fill_yylval("STRING",LEX_STRING);
+      |              ^~~~~~~~
+lexical.l:234:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  234 | \'\\.\'   {fill_yylval("CHAR",LEX_CHAR);
+      |              ^~~~~~
+lexical.l:246:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  246 | {CHAR}   {fill_yylval("CHAR",LEX_CHAR);
+      |              ^~~~~~
+lexical.l:254:14: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  254 | {MY_ID} {printfdebug("ID");
+      |              ^~~~
+lexical.l:256:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+  256 |         fill_yylval("ID",LEX_ID);
+      |                     ^~~~
+main.cpp: In function ‘int main(int, char**)’:
+main.cpp:75:15: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+   75 |     adddefine("temp.txt");
+      |               ^~~~~~~~~~

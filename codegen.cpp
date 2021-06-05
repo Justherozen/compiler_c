@@ -692,6 +692,30 @@ Value *CallExpr_codeGen(struct Node *root){
 		return generator.builder->CreateCall(generator.printf, makeArrayRef(params), "printf");
 	}
 
+if (func_name == "printf10d")
+	{
+		std::string formatStr = "";
+		std::vector<Value *> params;
+		Node *args = root->child->next_sib->next_sib;
+		while (args!=nullptr)
+		{
+			Value *argValue = Exp_codeGen(args->child);
+			formatStr += "%10d";	
+			params.emplace_back(argValue);
+			if(args->child->next_sib == nullptr)
+				break;
+			args = args->child->next_sib->next_sib;
+		}
+		auto formatConst = ConstantDataArray::getString(generator.context, formatStr.c_str());
+		auto formatStrVar = new GlobalVariable(*(generator.module), ArrayType::get(generator.builder->getInt8Ty(), formatStr.size() + 1), true, GlobalValue::ExternalLinkage, formatConst, ".str");
+		auto zero = Constant::getNullValue(generator.builder->getInt32Ty());
+		Constant *indices[] = {zero, zero};
+		auto varRef = ConstantExpr::getGetElementPtr(formatStrVar->getType()->getElementType(), formatStrVar, indices);
+		params.insert(params.begin(), varRef);
+		return generator.builder->CreateCall(generator.printf, makeArrayRef(params), "printf");
+	}
+
+
     else if (func_name == "printstring"){
         std::string formatStr = "";
 		std::vector<Value *> params;

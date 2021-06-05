@@ -1,0 +1,7 @@
+int main(){
+    int i=100e+10;
+    int j=2*(100e+10);
+    int k=(i*2+j^2);
+    
+}
+

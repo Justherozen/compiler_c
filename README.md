@@ -1,17 +1,24 @@
 # compiler_c
+
 course project of compiler principle
 
 
 
 ### Assignment
 
-Xiao：词法分析(√)、语法分析（√），语义分析，符号表，expected ddl:5 24
+Xiao：词法分析(√)、语法分析（√），语法树可视化（√），生成中间代码与目标代码（√），宏函数替换 （√）expected ddl:5 24
 
 
 
-Yu：生成中间代码与优化，生成汇编代码， 语法树可视化  expected ddl:5 29
+Yu：生成中间代码与生成目标代码 （√）、报告撰写（）  expected ddl:5 29
 
 
+
+测试点1：pass （`quick_sort` branch）:tested by Xiao
+
+测试点2：pass （`matrix_multiply` branch）:tested by Xiao
+
+测试点3:  to do by Yu
 
 
 

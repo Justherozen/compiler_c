@@ -1,0 +1,4 @@
+#define M(x,y) (x+y)
+#define N SDSsjkadjak
+kjahd2 skjfdsk M(x,y)
+ijdiks SDSsjkadjak

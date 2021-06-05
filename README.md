@@ -47,7 +47,6 @@ you can also `./compile.sh` to finish all work of compiling and test.
 1. `git pull` to make sure you're up to date
 2. Optionally, `git checkout <your-branch-name>` (the **master** branch should always be working fine)
 3. `make`  to compile and run the project.
-4. `make test` to run the testing cases,`make clean` to clear the generation result.
 
 
 

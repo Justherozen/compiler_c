@@ -1,29 +1,26 @@
-
+%option yylineno
 %{
-#include "syntax.tab.h"
 #include "treenode.h"
-//#define DEBUGNOW
-//#define DEBUGBISONNOW
+#include "syntaxparser.hpp"
+#include <string>
+#include <iostream>
+using namespace std;
 int lexError=0;
 extern int emptyflag;
-
+typedef struct Node* node;
 void printfdebug(char *str){
     #ifdef DEBUGNOW
     printf("debug:Line %d :input  %s : %s\n",yylineno,str,yytext);
     #endif
 }
-
-struct Node* root;
-
+int yycolumn = 1;
+#define YY_USER_ACTION yylloc.first_line = yylloc.last_line = yylineno; \
+	yylloc.first_column = yycolumn; yylloc.last_column = yycolumn + yyleng - 1; \
+    yycolumn += yyleng;
 void  fill_yylval(char * Name,NODE_TYPE Type);
-    int yycolumn = 1;
-    #define YY_USER_ACTION \
-        yylloc.first_line = yylloc.last_line = yylineno; \
-        yylloc.first_column = yycolumn; \
-        yylloc.last_column = yycolumn + yyleng - 1; \ 
-        yycolumn += yyleng;
+    
 %}
-%option yylineno
+
 letter_ [A-Za-z_]
 digit [0-9]
 digits [0-9]+
@@ -35,14 +32,16 @@ DEC   0|([1-9][0-9]*)
 DECERROR [0-9]+[a-wA-Wy-zY-Z]+[0-9a-dA-Df-zF-Z]*|[0-9]+[0-9]+[a-dA-Df-zF-Z]+[0-9]*[0-9a-dA-Df-zF-Z]*
 FLOAT   {digits}\.{digits}|(\.{digits}|{digits}\.|{digits}\.{digits}|{digits})([eE][+-]?{digits})
 FLOATERROR (\.{digits}|{digits}\.|{digits}\.{digits})([eE][+-]?)
-ID {letter_}({letter_}|{digit})*
-TYPE int|float
-LP  "("
+MY_ID {letter_}({letter_}|{digit})*
+STR \".*\"
+CHAR \'.\'
+TYPE "int"|"float"|"string"|"char"
+MY_LP  "("
 RP ")"
 LB "["
 RB "]"
-LC "{"
-RC "}"
+MY_LC "{"
+MY_RC "}"
 LCOMMENT "/*"
 COMMENT "//"
 RELOP >|<|>=|<=|==|!=
@@ -64,84 +63,63 @@ IF "if"
 ELSE "else"
 WhiteSpace  [ \t\r\n]+
 %%
-{HEX} {
-    printfdebug("HEX");
-    fill_yylval("INT",LEX_INT);
-    sscanf(yytext,"%x",&yylval.node->int_contant);
-    emptyflag=1;
-    return INT;
+{HEX} {printfdebug("HEX");
+        fill_yylval("INT",LEX_INT);
+        sscanf(yytext,"%x",&yylval.node->int_contant);
+        emptyflag=1;
+        return INT;
     }
-{HEXERROR} {
-    printf("Error type A at Line %d: Illegal hexadecimal number\'%s\'.\n",yylineno, yytext);
-    lexError+=1;
-    fill_yylval("INT",LEX_INT);
-    yylval.node->int_contant=0;
-    emptyflag=1;
-    return INT;
+{HEXERROR} {printf("Illegal hexadecimal number\'%s\'.\n",yylineno, yytext);
+        lexError+=1;
+        fill_yylval("INT",LEX_INT);
+        yylval.node->int_contant=0;
+        emptyflag=1;
+        return INT;
 }
-{OCT} {
-    printfdebug("OCT");
-    fill_yylval("INT",LEX_INT);
-    sscanf(yytext,"%o",&yylval.node->int_contant);
-    emptyflag=1;
-    return INT;
+{OCT} {printfdebug("OCT");
+        fill_yylval("INT",LEX_INT);
+        sscanf(yytext,"%o",&yylval.node->int_contant);
+        emptyflag=1;
+        return INT;
 }
-{OCTERROR} {
-    printf("Error type A at Line %d: Illegal octal number\'%s\'.\n",yylineno, yytext);
-    lexError+=1;
-    fill_yylval("INT",LEX_INT);
-    yylval.node->int_contant=0; 
-    emptyflag=1;
-    return INT;
+{OCTERROR} {printf("Illegal octal number\'%s\'.\n",yylineno, yytext);
+        lexError+=1;
+        fill_yylval("INT",LEX_INT);
+        yylval.node->int_contant=0; 
+        emptyflag=1;
+        return INT;
 }
-{DEC} {
-    printfdebug("DEC");
-    fill_yylval("INT",LEX_INT);
-    sscanf(yytext,"%d",&yylval.node->int_contant);
-    emptyflag=1;
-    return INT;
+{DEC} {printfdebug("DEC");
+        fill_yylval("INT",LEX_INT);
+        sscanf(yytext,"%d",&yylval.node->int_contant);
+        emptyflag=1;
+        return INT;
 }
-{DECERROR} {
-    printf("Error type A at Line %d: Illegal decerror number\'%s\'.\n",yylineno, yytext);
-    lexError+=1;
-    fill_yylval("INT",LEX_INT);
-    yylval.node->int_contant=0;
-    emptyflag=1;
-    return INT;
+{DECERROR} {printf("EIllegal decerror number\'%s\'.\n",yylineno, yytext);
+        lexError+=1;
+        fill_yylval("INT",LEX_INT);
+        yylval.node->int_contant=0;
+        emptyflag=1;
+        return INT;
 }
 {FLOAT} {
-    printfdebug("FLOAT");
-    fill_yylval("FLOAT",LEX_FLOAT);
-    sscanf(yytext,"%f",&yylval.node->float_contant);
-    emptyflag=1;
-    return FLOAT;
+        fill_yylval("FLOAT",LEX_FLOAT);
+        sscanf(yytext,"%f",&yylval.node->float_contant);
+        emptyflag=1;
+        return FLOAT;
     }
-{FLOATERROR} {
-    printf("Error type A at Line %d: Illegal floating point number\'%s\'.\n",yylineno, yytext);
-    fill_yylval("FLOAT",LEX_FLOAT);
-    yylval.node->float_contant=0;
-    lexError+=1;
-    emptyflag=1;
-    return FLOAT;
-    }
-{LCOMMENT} { 
-    char a=input();char b=input();while(a!='*'||b!='/'){
-        a=b;
-        b=input();
-    if(b=='\0'){
-        printf("unterminated comment at Line %d: Missing \"*/.\"\n",yylineno);
-        break;}
-        }    
-    }
-{COMMENT} {
-    char a=input();
-    while(a!='\n')a=input();
+{FLOATERROR} {printf("Illegal floating point number\'%s\'.\n",yylineno, yytext);
+        fill_yylval("FLOAT",LEX_FLOAT);
+        yylval.node->float_contant=0;
+        lexError+=1;
+        emptyflag=1;
+        return FLOAT;
     }
 {SEMI} {printfdebug("SEMI");
         fill_yylval("SEMI",OTHERS);    
         emptyflag=1;
         return SEMI;}
-{COMMA} {printfdebug("comma");
+{COMMA} {
         fill_yylval("COMMA",OTHERS);
         emptyflag=1;
        return COMMA; }
@@ -151,6 +129,7 @@ WhiteSpace  [ \t\r\n]+
         return ASSIGNOP;}
 {RELOP} {printfdebug("RELOP");
         fill_yylval("RELOP",OTHERS);
+        strcpy(yylval.node->string_contant,yytext);
         emptyflag=1;
         return RELOP;}
 {PLUS} {printfdebug("plus");
@@ -190,10 +169,10 @@ WhiteSpace  [ \t\r\n]+
         fill_yylval("TYPE",LEX_TYPE);
         strcpy(yylval.node->string_contant,yytext);
         return TYPE;}
-{LP}  {printfdebug("LP");
+{MY_LP}  {printfdebug("LP");
         emptyflag=1;
         fill_yylval("LP",OTHERS);
-        return LP;}
+        return MY_LP;}
 {RP} {printfdebug("RP");
         emptyflag=1;
         fill_yylval("RP",OTHERS);
@@ -206,14 +185,14 @@ WhiteSpace  [ \t\r\n]+
         emptyflag=1;
         fill_yylval("RB",OTHERS);
         return RB;}
-{LC} {printfdebug("LC");
+{MY_LC} {printfdebug("LC");
         emptyflag=1;
         fill_yylval("LC",OTHERS);
-        return LC;}
-{RC} {printfdebug("RC");
+        return MY_LC;}
+{MY_RC} {printfdebug("RC");
         emptyflag=1;
         fill_yylval("RC",OTHERS);
-        return RC;}
+        return MY_RC;}
 {STRUCT} {printfdebug("STRUCT");
         emptyflag=1;
         fill_yylval("STRUCT",OTHERS);
@@ -234,11 +213,39 @@ WhiteSpace  [ \t\r\n]+
         emptyflag=1;
         fill_yylval("WHILE",OTHERS);
         return WHILE;}
-{ID} {printfdebug("ID");
+{STR}   {fill_yylval("STRING",LEX_STRING);
+        string* temp=new string(yytext, yyleng);
+        string cuttemp=(*temp).substr(1,yyleng-2);
+        strcpy(yylval.node->string_contant,cuttemp.c_str());
+        printf("%s",yylval.node->string_contant);
+        return STRING;}
+        
+
+\'\\.\'   {fill_yylval("CHAR",LEX_CHAR);
+            if(yytext[2]=='n'){
+        yylval.node->char_contant = '\n';}
+        else if(yytext[2]=='t'){
+            yylval.node->char_contant = '\t';
+        }
+        else{
+            yylval.node->char_contant = '\0';
+        }
+        printf("%c",yylval.node->char_contant);
+        return CHAR;}
+
+{CHAR}   {fill_yylval("CHAR",LEX_CHAR);
+        yylval.node->char_contant = yytext[1];
+        printf("%c",yylval.node->char_contant);
+        return CHAR;}
+
+
+
+
+{MY_ID} {printfdebug("ID");
         emptyflag=1;
         fill_yylval("ID",LEX_ID);
         strcpy(yylval.node->string_contant,yytext);
-        return ID;}
+        return MY_ID;}
 {WhiteSpace}+ { }
 "\n" {yycolumn=1;}
 .   {

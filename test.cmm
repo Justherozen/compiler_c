@@ -1,5 +1,5 @@
-int main()
-{
-int i = 0;
-inc(i);
+int main(){
+    float a;
+    a=.09;
+return 0;
 }

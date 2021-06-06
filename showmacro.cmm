@@ -1,0 +1,9 @@
+#define Consttest 100e+10
+#define Functest(x,y) (x*2+y^2)
+int main(){
+    int i=Consttest;
+    int j=2*(Consttest);
+    int k=Functest(i,j);
+    /*haha,this line is the comment test!*/
+}
+

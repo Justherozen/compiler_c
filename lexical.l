@@ -5,8 +5,6 @@
 #include <string>
 #include <iostream>
 using namespace std;
-//#define DEBUGNOW
-//#define DEBUGBISONNOW
 int lexError=0;
 extern int emptyflag;
 typedef struct Node* node;
@@ -65,65 +63,57 @@ IF "if"
 ELSE "else"
 WhiteSpace  [ \t\r\n]+
 %%
-{HEX} {
-    printfdebug("HEX");
-    fill_yylval("INT",LEX_INT);
-    sscanf(yytext,"%x",&yylval.node->int_contant);
-    emptyflag=1;
-    return INT;
+{HEX} {printfdebug("HEX");
+        fill_yylval("INT",LEX_INT);
+        sscanf(yytext,"%x",&yylval.node->int_contant);
+        emptyflag=1;
+        return INT;
     }
-{HEXERROR} {
-    printf("Error type A at Line %d: Illegal hexadecimal number\'%s\'.\n",yylineno, yytext);
-    lexError+=1;
-    fill_yylval("INT",LEX_INT);
-    yylval.node->int_contant=0;
-    emptyflag=1;
-    return INT;
+{HEXERROR} {printf("Illegal hexadecimal number\'%s\'.\n",yylineno, yytext);
+        lexError+=1;
+        fill_yylval("INT",LEX_INT);
+        yylval.node->int_contant=0;
+        emptyflag=1;
+        return INT;
 }
-{OCT} {
-    printfdebug("OCT");
-    fill_yylval("INT",LEX_INT);
-    sscanf(yytext,"%o",&yylval.node->int_contant);
-    emptyflag=1;
-    return INT;
+{OCT} {printfdebug("OCT");
+        fill_yylval("INT",LEX_INT);
+        sscanf(yytext,"%o",&yylval.node->int_contant);
+        emptyflag=1;
+        return INT;
 }
-{OCTERROR} {
-    printf("Error type A at Line %d: Illegal octal number\'%s\'.\n",yylineno, yytext);
-    lexError+=1;
-    fill_yylval("INT",LEX_INT);
-    yylval.node->int_contant=0; 
-    emptyflag=1;
-    return INT;
+{OCTERROR} {printf("Illegal octal number\'%s\'.\n",yylineno, yytext);
+        lexError+=1;
+        fill_yylval("INT",LEX_INT);
+        yylval.node->int_contant=0; 
+        emptyflag=1;
+        return INT;
 }
-{DEC} {
-    printfdebug("DEC");
-    fill_yylval("INT",LEX_INT);
-    sscanf(yytext,"%d",&yylval.node->int_contant);
-    emptyflag=1;
-    return INT;
+{DEC} {printfdebug("DEC");
+        fill_yylval("INT",LEX_INT);
+        sscanf(yytext,"%d",&yylval.node->int_contant);
+        emptyflag=1;
+        return INT;
 }
-{DECERROR} {
-    printf("Error type A at Line %d: Illegal decerror number\'%s\'.\n",yylineno, yytext);
-    lexError+=1;
-    fill_yylval("INT",LEX_INT);
-    yylval.node->int_contant=0;
-    emptyflag=1;
-    return INT;
+{DECERROR} {printf("EIllegal decerror number\'%s\'.\n",yylineno, yytext);
+        lexError+=1;
+        fill_yylval("INT",LEX_INT);
+        yylval.node->int_contant=0;
+        emptyflag=1;
+        return INT;
 }
 {FLOAT} {
-    printfdebug("FLOAT");
-    fill_yylval("FLOAT",LEX_FLOAT);
-    sscanf(yytext,"%f",&yylval.node->float_contant);
-    emptyflag=1;
-    return FLOAT;
+        fill_yylval("FLOAT",LEX_FLOAT);
+        sscanf(yytext,"%f",&yylval.node->float_contant);
+        emptyflag=1;
+        return FLOAT;
     }
-{FLOATERROR} {
-    printf("Error type A at Line %d: Illegal floating point number\'%s\'.\n",yylineno, yytext);
-    fill_yylval("FLOAT",LEX_FLOAT);
-    yylval.node->float_contant=0;
-    lexError+=1;
-    emptyflag=1;
-    return FLOAT;
+{FLOATERROR} {printf("Illegal floating point number\'%s\'.\n",yylineno, yytext);
+        fill_yylval("FLOAT",LEX_FLOAT);
+        yylval.node->float_contant=0;
+        lexError+=1;
+        emptyflag=1;
+        return FLOAT;
     }
 {SEMI} {printfdebug("SEMI");
         fill_yylval("SEMI",OTHERS);    

@@ -11,24 +11,24 @@ void tree_search(struct Node* cur,int depth){
   }
     printf("%s",cur->name);
     if(cur->from==1){
-      printf(" (%d)",cur->column);
+        printf(" (%d)",cur->column);
     }
     else if(cur->from==0){
-      if(cur->type==LEX_INT){
-        printf(": %d",cur->int_contant);
-      } 
-      else if(cur->type==LEX_FLOAT){
-        printf(": %f",cur->float_contant);
-      }
-      else if(cur->type==LEX_ID){
-        printf(": %s",cur->string_contant);
-      }
-      else if(cur->type==LEX_TYPE){
-        printf(": %s",cur->string_contant);
-      }
-      else{
-        ;
-      }
+        if(cur->type==LEX_INT){
+            printf(": %d",cur->int_contant);
+        } 
+        else if(cur->type==LEX_FLOAT){
+            printf(": %f",cur->float_contant);
+        }
+        else if(cur->type==LEX_ID){
+            printf(": %s",cur->string_contant);
+        }
+        else if(cur->type==LEX_TYPE){
+            printf(": %s",cur->string_contant);
+        }
+        else{
+            ;
+        }
     }
     printf("\n");
     tree_search(cur->child,depth+1);
@@ -43,13 +43,9 @@ void draw_syntax_tree(){
 }
 
 void tree_search_vis(struct Node* cur,int depth,char fromname[32],int index,FILE* fp){
-  if(cur==NULL){
-    return;
-  }
-  /*
-  for(int i=0;i<depth;i++){
-    printf("  ");
-  }*/
+    if(cur==NULL){
+        return;
+    }
     if(strcmp(cur->name,"Program")==0){
         fprintf(fp,"Program_0[label=\"Program\"]");
         tree_search_vis(cur->child,depth+1,"Program",0,fp);

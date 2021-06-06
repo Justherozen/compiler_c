@@ -72,9 +72,12 @@ Value *ExtDec_codeGen(struct Node* root){
 		tp = Type::getDoubleTy(generator.context);
 	else if(strcmp(root->child->child->string_contant,"string")==0)
 		tp = getstrtype->getType();
-	else
+	else if(strcmp(root->child->child->string_contant,"char")==0)
 		tp = Type::getInt8Ty(generator.context);
-	
+	else{
+		std::cerr<<"  [Error] Unknown variable type. Line:"<<root->column<<std::endl;
+		exit(0);
+	}
 	std::string var_type = root->child->child->string_contant;
 	while(vardec !=nullptr){
 		Value *init_value = nullptr;
@@ -87,6 +90,14 @@ Value *ExtDec_codeGen(struct Node* root){
 			init_value = ConstantDataArray::getString(generator.context,tmp);
 		else if(var_type=="char")
 			init_value = generator.builder->getInt8(0);
+		
+		Value *is_global = nullptr;
+		is_global = generator.module->getGlobalVariable(vardec->child->string_contant);
+		if(is_global != nullptr){
+			std::cerr<<"  [Error] Redefined variable. Line:"<<vardec->child->column<<std::endl;
+			exit(0);
+		}
+		
 		Value *alloc = nullptr;
 		/* is var */
 		if (vardec->child->next_sib == nullptr){
@@ -131,12 +142,20 @@ Value *FunDec_codeGen(struct Node* root){
 		tp = Type::getInt32Ty(generator.context);
 	else if(func_tp=="float")
 		tp = Type::getDoubleTy(generator.context);
-	else
-		tp = Type::getVoidTy(generator.context);
+	else{ 
+		std::cerr<<"  [Error] Unknown function type. Line:"<<root->column<<std::endl;
+		exit(0);
+	}
 	FunctionType *func_type;
 	struct Node *ID = root->child->next_sib->child;
 	std::vector<Type *> arg_types;
 
+	Function *callee_func = nullptr;
+	callee_func = generator.module->getFunction(ID->string_contant);
+	if (callee_func!=nullptr){
+		std::cerr<<"  [Error] Redefined function. Line:"<<ID->column<<std::endl;
+		exit(0);
+	}
 	if (strcmp(ID->next_sib->next_sib->name,"RP")==0)
 		func_type = FunctionType::get(tp, false);
 	else
@@ -167,9 +186,12 @@ Value *FunDec_codeGen(struct Node* root){
 			}
 			else if(strcmp(paramdec->child->child->string_contant,"string")==0)
 				tmp = getstrtype->getType();
-			else
+			else if(strcmp(paramdec->child->child->string_contant,"char")==0)
 				tmp = Type::getInt8Ty(generator.context);
-			
+			else{
+				std::cerr<<"  [Error] Unknown function argument type. Line:"<<root->column<<std::endl;
+				exit(0);
+			}
 			arg_types.push_back(tmp);
 
 			if(paramdec->next_sib == nullptr)
@@ -181,24 +203,8 @@ Value *FunDec_codeGen(struct Node* root){
 	}
 	/* Create function */
 	Function *function = Function::Create(func_type, GlobalValue::ExternalLinkage, ID->string_contant, generator.module);
-	/* Traverse through args and set their names */
 	
-	// if (strcmp(ID->next_sib->next_sib->name ,"RP")!=0)
-	// {
-	// 	Function::arg_iterator arg_iter = function->arg_begin();
-	// 	struct Node* para_tmp = ID->next_sib->next_sib->child;
-	// 	while (para_tmp !=nullptr)
-	// 	{
-	// 		Value *arg = arg_iter++;
-	// 		arg->setName(para_tmp->child->next_sib->child->string_contant);
-	// 		if(para_tmp->next_sib ==nullptr )
-	// 			break;
-	// 		para_tmp = para_tmp->next_sib->next_sib->child;
-	// 	}
-	// }
-
 	generator.setCurFunction(function);
-
 
 	/* Set insert point and insert function body */
 	struct Node* compst = root->child->next_sib->next_sib;
@@ -234,20 +240,13 @@ Value *FunDec_codeGen(struct Node* root){
 		}
 
 		if(strcmp(compst->child->next_sib->name ,"DefList")==0 && strcmp(compst->child->next_sib->next_sib->name,"StmtList")==0){
-			def_codeGen(compst->child->next_sib);
-			stmt_codeGen(compst->child->next_sib->next_sib);
+			Def_codeGen(compst->child->next_sib);
+			Stmt_codeGen(compst->child->next_sib->next_sib);
 		}
 		else if(strcmp(compst->child->next_sib->name ,"StmtList")==0)
-			stmt_codeGen(compst->child->next_sib);
+			Stmt_codeGen(compst->child->next_sib);
 	}
-	// if (ret_type->getLLVMType() != generator.builder->getVoidTy())
-	// {
-	// 	generator.builder->CreateRet(statement->codeGen());
-	// }
-	// else
-	// {
-	// 	generator.builder->CreateRetVoid();
-	// }
+	
 	if (tp->isVoidTy())
 		generator.builder->CreateRetVoid();
 	else if (tp->isIntegerTy())
@@ -259,7 +258,7 @@ Value *FunDec_codeGen(struct Node* root){
 	return nullptr;
 }
 
-Value *def_codeGen(struct Node* root){
+Value *Def_codeGen(struct Node* root){
 	struct Node *def = root->child;
 	while(def !=nullptr){
 		LogErrorV("VarDef");
@@ -281,6 +280,10 @@ Value *def_codeGen(struct Node* root){
 		else if(strcmp(def->child->child->string_contant,"char")==0){
 			tp =Type::getInt8Ty(generator.context);
 		}
+		else{
+			std::cerr<<"  [Error] Unknown variable type. Line:"<<def->child->child->column<<std::endl;
+			exit(0);
+		}
 		std::string var_type = def->child->child->string_contant;
 		struct Node *dec = def->child->next_sib->child;
 		while(dec!=nullptr){
@@ -293,6 +296,16 @@ Value *def_codeGen(struct Node* root){
 				init_value = ConstantDataArray::getString(generator.context,tmp);
 			else if(var_type=="char")
 				init_value = generator.builder->getInt8(0);
+
+			Value *is_cur = nullptr;
+			Value *is_global = nullptr;
+			is_cur = generator.getCurFunction()->getValueSymbolTable()->lookup(dec->child->child->string_contant);
+			is_global = generator.module->getGlobalVariable(dec->child->child->string_contant);
+			if(is_cur != nullptr || is_global != nullptr){
+				std::cerr<<"  [Error] Redefined variable. Line:"<<dec->child->child->column<<std::endl;
+				exit(0);
+			}
+
 			Value *alloc = nullptr;
 			if (dec->child->child->next_sib == nullptr)
 				alloc = generator.builder->CreateAlloca(tp, nullptr, dec->child->child->string_contant);
@@ -329,7 +342,7 @@ Value *def_codeGen(struct Node* root){
 	return nullptr;
 }
 
-Value *stmt_codeGen(struct Node* root){
+Value *Stmt_codeGen(struct Node* root){
 	Value* ptr;
 	struct Node* stmt;
 	if(strcmp(root->name,"Stmt") == 0)
@@ -343,11 +356,11 @@ Value *stmt_codeGen(struct Node* root){
 		else if(strcmp(stmt->child->name, "CompSt")==0){
 			struct Node* compst = stmt->child;
 			if(strcmp(compst->child->next_sib->name, "DefList")==0 && strcmp(compst->child->next_sib->next_sib->name,"StmtList")==0){
-				def_codeGen(compst->child->next_sib);
-				ptr = stmt_codeGen(compst->child->next_sib->next_sib);
+				Def_codeGen(compst->child->next_sib);
+				ptr = Stmt_codeGen(compst->child->next_sib->next_sib);
 			}
 			else if(strcmp(compst->child->next_sib->name , "StmtList")==0)
-				ptr = stmt_codeGen(compst->child->next_sib);
+				ptr = Stmt_codeGen(compst->child->next_sib);
 		}
 		else if(strcmp(stmt->child->name ,"RETURN")==0){
 			ptr = Return_codeGen(stmt);
@@ -370,7 +383,7 @@ Value *Exp_codeGen(struct Node* root){
 	if(strcmp(root->child->name ,"Exp")==0){
 		std::string opt = root->child->next_sib->name;
 		if(opt == "ASSIGNOP"){
-			ptr = assign_codeGen(root);
+			ptr = Assign_codeGen(root);
 		}
 		else if(opt == "AND"||opt == "OR"||opt == "RELOP"||opt == "PLUS"
 		||opt == "MINUS"||opt == "STAR"||opt == "DIV" ){
@@ -390,23 +403,20 @@ Value *Exp_codeGen(struct Node* root){
 		else if(strcmp(root->child->next_sib->name ,"LP")==0)
 			ptr = CallExpr_codeGen(root);
 	}
-	else if(strcmp(root->child->name,"Not")==0){
-		//
-	}
 	else{
 		if(strcmp(root->child->name ,"INT")==0)
-			ptr = int_codeGen(root->child);
+			ptr = Int_codeGen(root->child);
 		else if(strcmp(root->child->name ,"FLOAT")==0)
-			ptr = float_codeGen(root->child);
+			ptr = Float_codeGen(root->child);
 		else if(strcmp(root->child->name ,"STRING")==0)
-			ptr = string_codeGen(root->child);
+			ptr = String_codeGen(root->child);
 		else
-			ptr = char_codeGen(root->child);
+			ptr = Char_codeGen(root->child);
 	}
 	return ptr;
 }
 
-Value* assign_codeGen(struct Node* root){
+Value* Assign_codeGen(struct Node* root){
 	LogErrorV("AssignStatement");
 	struct Node *lexp = root->child;
 	struct Node *rexp = lexp->next_sib->next_sib;
@@ -421,15 +431,24 @@ Value* assign_codeGen(struct Node* root){
 		if (var_value == nullptr)
 		{
 			/* Search for variable in global */
-			printf("look up global");
 			var_value = generator.module->getGlobalVariable(var_name);
-			if (var_value == nullptr)
-				throw std::logic_error("[ERROR]Undeclared variable " + var_name);
+			if (var_value == nullptr){
+				std::cerr<<"  [Error] Undeclared variable. Line:"<<root->column<<std::endl;
+				exit(0);
+			}
 		}
 		lvalue = generator.builder->CreateLoad(var_value, "tmp_var_value");
 		if(lvalue->getType()!=rvalue->getType()){
-			rvalue = generator.builder->CreateIntCast(rvalue, Type::getInt32Ty(generator.context), true);
-			//rvalue = generator.builder->CreateSIToFP(rvalue,Type::getDoubleTy(generator.context));
+			if(lvalue->getType()->isIntegerTy()&&rvalue->getType()->isIntegerTy()){
+				rvalue = generator.builder->CreateIntCast(rvalue, Type::getInt32Ty(generator.context), true);
+			}
+			else if(lvalue->getType()->isDoubleTy()&&rvalue->getType()->isIntegerTy()){
+				rvalue = generator.builder->CreateSIToFP(rvalue,Type::getDoubleTy(generator.context));
+			}
+			else{
+				std::cerr<<"  [Error] Unequal variable types. Line:"<<lexp->column<<std::endl;
+				exit(0);
+			}
 		}
 		return generator.builder->CreateStore(rvalue, var_value);
 	}
@@ -440,8 +459,12 @@ Value* assign_codeGen(struct Node* root){
 		Value *index_value = Exp_codeGen(lexp->child->next_sib->next_sib);
 		if (index_value == nullptr)
 		{
-			LogErrorV("[ERROR]Var: Void expression");
-			return nullptr;
+			std::cerr<<"  [Error] Void expression. Line:"<<root->column<<std::endl;
+			exit(0);
+		}
+		else if(!index_value->getType()->isIntegerTy()){
+			std::cerr<<"  [Error] Wrong index input. Line:"<<root->column<<std::endl;
+			exit(0);
 		}
 		Value *ptr = nullptr;
 		/* Construct ArrayRef */
@@ -456,19 +479,22 @@ Value* assign_codeGen(struct Node* root){
 		{
 			/* Search for variable in global space */
 			array_addr = generator.module->getGlobalVariable(var_name);
-			if (array_addr == nullptr)
-				throw std::logic_error("[ERROR]Undeclared variable " + var_name);
+			if (array_addr == nullptr){
+				std::cerr<<"  [Error] Undeclared variable. Line:"<<root->column<<std::endl;
+				exit(0);
+			}
 		}
 		Value *array_value = generator.builder->CreateLoad(array_addr, "tmp_var_value");
+		
 		if (array_value->getType()->isPointerTy())
 		{
 			ptr = generator.builder->CreateGEP(array_value, array_pointer_v, "tmp_array_pointer");
-			return generator.builder->CreateStore(Exp_codeGen(rexp), ptr);
+			return generator.builder->CreateStore(rvalue, ptr);
 		}
 		else if (array_value->getType()->isArrayTy())
 		{
 			ptr = generator.builder->CreateGEP(array_addr, array_ref_v, "tmp_array_ptr");
-			return generator.builder->CreateStore(Exp_codeGen(rexp), ptr);
+			return generator.builder->CreateStore(rvalue, ptr);
 		}
 		return nullptr;
 	}
@@ -529,22 +555,6 @@ Value *Binary_codeGen(struct Node *root){
 		else if(opt == ">=")
 			return generator.builder->CreateICmpSGE(L, R, "sgetmp");
 		else if(opt == "=="){
-			// if(L->getType()==getstrtype->getType()&&R->getType()==getstrtype->getType()){
-			// 	std::vector<Value *> array_ref_v;
-			// 	Value *lptr = nullptr;
-			// 	Value *rptr = nullptr;
-			// 	Value * larray_addr = generator.getCurFunction()->getValueSymbolTable()->lookup(lexp->child->string_contant);
-			// 	Value * rarray_addr = generator.getCurFunction()->getValueSymbolTable()->lookup(rexp->child->string_contant);
-			// 	array_ref_v.push_back(generator.builder->getInt32(0));
-			// 	array_ref_v.push_back(generator.builder->getInt32(0));
-			// 	lptr = generator.builder->CreateGEP(larray_addr, array_ref_v, "tmp_array_pointer_l");
-			// 	rptr = generator.builder->CreateGEP(rarray_addr, array_ref_v, "tmp_array_pointer_r");
-			// 	Value *lvar_value = generator.builder->CreateLoad(lptr, "tmp_array_value_l");
-			// 	Value *rvar_value = generator.builder->CreateLoad(rptr, "tmp_array_value_r");
-			// 	Value* is_eq =  generator.builder->CreateICmpEQ(lvar_value, rvar_value, "eqtmp");
-			// 	return is_eq;
-			// }
-			// else
 			return generator.builder->CreateICmpEQ(L, R, "eqtmp");
 		}
 		else if(opt == "!=")
@@ -554,26 +564,28 @@ Value *Binary_codeGen(struct Node *root){
 		return generator.builder->CreateAnd(L,R, "andtmp");
 	else if(op == "OR")
 		return generator.builder->CreateOr(L,R, "ortmp");
-	else
-		return LogErrorV("invalid binary operator");
+	else{
+		std::cerr<<"  [Error] Invalid binary operator. Line:"<<root->column<<std::endl;
+		exit(0);
+	}
 }
 
-Value *int_codeGen(struct Node* root){
+Value *Int_codeGen(struct Node* root){
 	LogErrorV("IntExp");
 	return generator.builder->getInt32(root->int_contant);
 }
 
-Value *float_codeGen(struct Node* root){
+Value *Float_codeGen(struct Node* root){
 	LogErrorV("FloatExp");
 	return ConstantFP::get(generator.builder->getDoubleTy(), root->float_contant);
 }
 
-Value *char_codeGen(struct Node* root){
+Value *Char_codeGen(struct Node* root){
 	LogErrorV("CharExp");
 	return generator.builder->getInt8(root->char_contant);
 }
 
-Value *string_codeGen(struct Node* root)
+Value *String_codeGen(struct Node* root)
 {
 	LogErrorV("StringExp");
     std::string tmp=root->string_contant;
@@ -596,8 +608,10 @@ Value *Var_codeGen(struct Node* root){
 				{
 					/* Search for variable in global */
 					var_ptr = generator.module->getGlobalVariable(var_name);
-					if (var_ptr == nullptr)
-						throw std::logic_error("[ERROR]Var: Undeclared variable " + var_name);
+					if (var_ptr == nullptr){
+						std::cerr<<"  [Error] Undeclared variable. Line:"<<root->column<<std::endl;
+						exit(0);
+					}
 				}
 		Value *var_value = generator.builder->CreateLoad(var_ptr, "tmp_var_value");
 
@@ -608,6 +622,15 @@ Value *Var_codeGen(struct Node* root){
 		std::string var_name = root->child->string_contant;
 		Value *array_addr = nullptr;
 		Value *index_value = Exp_codeGen(root->child->next_sib->next_sib);
+		if (index_value == nullptr)
+		{
+			std::cerr<<"  [Error] Void expression. Line:"<<root->column<<std::endl;
+			exit(0);
+		}
+		else if(!index_value->getType()->isIntegerTy()){
+			std::cerr<<"  [Error] Wrong index input. Line:"<<root->column<<std::endl;
+			exit(0);
+		}
 		Value *ptr = nullptr;
 		/* Construct ArrayRef */
 		std::vector<Value *> array_ref_v;
@@ -621,10 +644,16 @@ Value *Var_codeGen(struct Node* root){
 		{
 			/* Search for variable in global space */
 			array_addr = generator.module->getGlobalVariable(var_name);
-			if (array_addr == nullptr)
-				throw std::logic_error("[ERROR]Var: Undeclared variable " + var_name);
+			if (array_addr == nullptr){
+				std::cerr<<"  [Error] Undeclared variable. Line:"<<root->column<<std::endl;
+				exit(0);
+			}
 		}
 		Value *array_value = generator.builder->CreateLoad(array_addr, "tmp_var_value");
+		if(array_value->getType()->isIntegerTy()||array_value->getType()->isDoubleTy()){
+			std::cerr<<"  [Error] Current variable is not an array. Line:"<<root->column<<std::endl;
+			exit(0);
+		}
 		if (array_value->getType()->isPointerTy())
 		{
 			ptr = generator.builder->CreateGEP(array_value, array_pointer_v, "tmp_array_pointer");
@@ -860,8 +889,10 @@ else if (func_name == "printstringsameline"){
 
 	Function *callee_func = generator.module->getFunction(func_name);
 	std::vector<Value *> args_vec;
-	if (!callee_func)
-		return LogErrorV("Unknown function referenced");
+	if (!callee_func){
+		std::cerr<<"  [Error] Unknown function referrence. Line:"<<root->column<<std::endl;
+		exit(0);
+	}
 	struct Node* args = root->child->next_sib->next_sib;
 	int arg_size = 0;
 	if(strcmp(args->name ,"RP")==0){
@@ -876,8 +907,10 @@ else if (func_name == "printstringsameline"){
 		}
 	}
 
-	if (callee_func->arg_size() != arg_size)
-		return LogErrorV("Incorrect # arguments passed");
+	if (callee_func->arg_size() != arg_size){
+		std::cerr<<"  [Error] Incorrect number of function arguments. Line:"<<root->column<<std::endl;
+		exit(0);
+	}
 
 	args = root->child->next_sib->next_sib;
 	args_vec.push_back(Exp_codeGen(args->child));
@@ -902,13 +935,13 @@ Value* If_codeGen(struct Node *root){
 	//Then
 	auto branch = generator.builder->CreateCondBr(cond_value, then_block, else_block);
 	generator.builder->SetInsertPoint(then_block);
-	thenValue = stmt_codeGen(root->child->next_sib->next_sib->next_sib->next_sib);
+	thenValue = Stmt_codeGen(root->child->next_sib->next_sib->next_sib->next_sib);
 	generator.builder->CreateBr(end_block);
 
 	generator.builder->SetInsertPoint(else_block);
 	if (root->child->next_sib->next_sib->next_sib->next_sib->next_sib != nullptr)
 	{
-		elseValue = stmt_codeGen(root->child->next_sib->next_sib->next_sib->next_sib->next_sib->next_sib);
+		elseValue = Stmt_codeGen(root->child->next_sib->next_sib->next_sib->next_sib->next_sib->next_sib);
 	}
 	generator.builder->CreateBr(end_block);
 	generator.builder->SetInsertPoint(end_block);
@@ -933,7 +966,7 @@ Value* While_codeGen(struct Node *root){
 
 	// Loop
 	generator.builder->SetInsertPoint(loop_block);
-	stmt_codeGen(root->child->next_sib->next_sib->next_sib->next_sib);
+	Stmt_codeGen(root->child->next_sib->next_sib->next_sib->next_sib);
 	generator.builder->CreateBr(condition_block);
 
 	// End

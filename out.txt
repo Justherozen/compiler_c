@@ -1,8 +1,0 @@
-/bin/sh: 1: /usr/binvm-config-10: not found
-In file included from llvm.hpp:3,
-                 from codegen.cpp:3:
-/usr/include/llvm-10/llvm/IR/BasicBlock.h:16:10: fatal error: llvm-c/Types.h: No such file or directory
-   16 | #include "llvm-c/Types.h"
-      |          ^~~~~~~~~~~~~~~~
-compilation terminated.
-make: *** [Makefile:22: codegen.o] Error 1

@@ -106,6 +106,20 @@ return 0;
 
 （2）预处理优化（完成中）：
 
+暂时只实现了最基本的无效表达式移除与while合并，其他优化还在开发中。
+
+![image-20210607022231793](README.assets/image-20210607022231793.png)
+
+优化后：
+
+![image-20210607022245545](README.assets/image-20210607022245545.png)
+
+
+
+
+
+
+
 
 
 常量传播与折叠：
@@ -129,6 +143,247 @@ int main(){
 优化后：
 
 ![image-20210606195542171](README.assets/image-20210606195542171.png)
+
+
+
+
+
+
+
+**错误检测提示：**（还在加紧完善中，时间比较紧，不完善之处请谅解）
+
+错误示例1：变量未声明
+
+输入1：
+
+```c
+int main()
+{
+    int i；
+    i= 0;
+    j = i + 1;
+}
+```
+
+输出：
+
+<img src="README.assets/image-20210606235855714.png" alt="image-20210606235855714" style="zoom:150%;" />
+
+错误示例：函数未声明
+
+输入2：
+
+```c
+int main(){
+int i；
+i = 0;
+add(i);
+}
+```
+
+输出：
+
+<img src="README.assets/image-20210606235913825.png" alt="image-20210606235913825" style="zoom:150%;" />
+
+
+
+错误示例：变量重定义
+
+输入3：
+
+```c
+int main()
+{ int i;
+  int i;
+}
+```
+
+输出
+
+![image-20210607011255427](README.assets/image-20210607011255427.png)
+
+
+
+错误示例：函数重定义
+
+输入4：
+
+```c
+int func(int i)
+{
+	return i;
+}
+int func()
+{
+	return 0;
+}
+int main()
+{
+
+}
+```
+
+输出：
+
+![image-20210607011249212](README.assets/image-20210607011249212.png)
+
+
+
+
+
+
+
+错误示例：变量类型错误
+
+输入5：
+
+```c
+int main()
+{
+	int i;
+	i = 1.1;
+}
+```
+
+输出：
+
+![image-20210607011314248](README.assets/image-20210607011314248.png)
+
+
+
+错误示例：输入格式错误
+
+输入6：
+
+```c
+int main(){
+    float a;
+    a=.09;
+return 0;
+}
+```
+
+输出：
+
+![image-20210607010302792](README.assets/image-20210607010302792.png)
+
+
+
+错误示例：函数参数个数错误
+
+输入7：
+
+```c
+int func(int i)
+{
+return i;
+ }
+
+ int main()
+ {
+ func(1, 2);
+ }int main()
+{
+int i;
+ 10 = i;
+ }
+```
+
+输出
+
+![image-20210607011430974](README.assets/image-20210607011430974.png)
+
+
+
+错误示例：非数组变量调用下标
+
+输入8：
+
+```c
+int main()
+{
+int i;
+i[0];
+ }
+```
+
+输出：
+
+![image-20210607011505334](README.assets/image-20210607011505334.png)
+
+
+
+错误示例：索引下标错误
+
+输入9：
+
+```c
+int main()
+{
+int i[10];
+i[1.5] = 10;
+ }
+```
+
+输出
+
+![image-20210607011514055](README.assets/image-20210607011514055.png)
+
+错误示例：不存在的函数
+
+输入10：
+
+```c
+int main()
+{
+int i;
+i(10);
+}
+```
+
+输出：
+
+![image-20210607011520845](README.assets/image-20210607011520845.png)
+
+
+
+复杂错误示例：变量重定义
+
+输入11：
+
+```c
+int func()
+{
+int i;
+i = 10;
+return i;
+}
+
+int main()
+{
+ int i;
+ int i;
+ int j;
+ i = func();
+ return 0;
+}
+```
+
+输出：
+
+![image-20210607012342106](README.assets/image-20210607012342106.png)
+
+
+
+输入12：
+
+
+
+错误类型to do:
+
+关于局部变量与全局变量的区别等、错误恢复（语法级别与生成中间代码级别）
+
+
 
 
 

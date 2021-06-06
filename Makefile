@@ -11,7 +11,7 @@ OBJS = treenode.o codegen.o syntaxparser.o lexscanner.o main.o
 all : $(NAME)
 
 syntaxparser.cpp: syntax.y
-	yacc -d -Wno-yacc -o syntaxparser.cpp syntax.y
+	yacc -d -Wno-yacc -o syntaxparser.cpp syntax.y 
 
 syntaxparser.hpp: syntaxparser.cpp
 

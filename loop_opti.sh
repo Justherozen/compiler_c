@@ -1,0 +1,1 @@
+./Cmm test.cmm && opt -O3 -S -print-before-all -print-after-all test_out.ll>test_out_op.ll&&clang -fsanitize=safe-stack -o aa.out test_out_op.ll -g -Rpass-analysis=loop-vectorize -Rpass=loop-vectorize -Rpass-missed=loop-vectorize &&./aa.out

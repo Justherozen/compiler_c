@@ -3,6 +3,7 @@
 #include "llvm.hpp"
 #include "treenode.h"
 #include "codegen.hpp"
+#include <llvm/Transforms/Scalar/LoopUnrollPass.h>
 
 using namespace llvm;
 extern std::map<std::string,llvm::Value*> addrtable;

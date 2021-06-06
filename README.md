@@ -22,7 +22,113 @@ Yu：生成中间代码与生成目标代码 （√）、报告撰写（）测�
 
 测试点全部通过.
 
-完成的进阶主题：宏函数与宏替换、循环展开优化、其他。。。。
+完成的进阶主题：
+
+（1）宏函数与宏替换、
+
+（2）IR中间代码优化优化：循环向量化（Loop and SLP 向量化）、循环展开、常量折叠。。。。
+
+（3）错误检测与提示
+
+（两人组时间有限 预处理部分还在完成中555555）、
+
+
+
+第2点实现方式：调库、预处理
+
+循环优化：
+
+（1）LLVM提供：调用llvm Pass对llvm-IR中间代码进行优化（eg:unroll and jam、DCE(dead code elimination)、EarlyCSE）
+
+优化效果展示：
+
+简单的循环优化（向量化、变量复用）：
+
+```
+int main(){
+int unroll[1000];
+int i;
+i=0;
+while(i<1000){
+    unroll[i]=i;
+    i=i+1;
+}
+i=0;
+while(i<1000){
+    unroll[i]= unroll[i]+10;
+    i=i+1;
+}
+return 0;
+}
+```
+
+优化前：
+
+<img src="README.assets/image-20210606154648664.png" alt="image-20210606154648664"  />
+
+优化后：
+
+![image-20210606155221217](README.assets/image-20210606155221217.png)
+
+
+
+同时调用多个不同的优化时：
+
+优化前与优化之后对比：
+
+程序占用空间：quick sort 测试程序
+
+优化前：
+
+<img src="README.assets/image-20210606153602754.png" alt="image-20210606153602754" style="zoom:67%;" />
+
+优化后：
+
+<img src="README.assets/image-20210606153259952.png" alt="image-20210606153259952" style="zoom:67%;" />
+
+程序运行时间：auto adviser 测试程序
+
+优化前：
+
+<img src="README.assets/image-20210606151819294.png" alt="image-20210606151819294" style="zoom: 67%;" />
+
+优化后：
+
+<img src="README.assets/image-20210606152225833.png" alt="image-20210606152225833" style="zoom:67%;" />
+
+
+
+程序占用空间与消耗时间都得到了明显的优化（但有时候会牺牲空间换取时间，进一步研究中）。
+
+
+
+
+
+（2）预处理优化（完成中）：
+
+
+
+常量传播与折叠：
+
+```
+int main(){
+    int x;
+    int y;
+    int z;
+    x=14;
+    y=21;
+    z=24;
+    return 0;
+}
+```
+
+优化前：
+
+![image-20210606195020717](README.assets/image-20210606195020717.png)
+
+优化后：
+
+![image-20210606195542171](README.assets/image-20210606195542171.png)
 
 
 
